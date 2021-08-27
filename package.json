@@ -1,0 +1,29 @@
+{
+  "name": "mcga-caldar",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GianElli99/mcga-caldar.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GianElli99/mcga-caldar/issues"
+  },
+  "homepage": "https://github.com/GianElli99/mcga-caldar#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.12",
+    "prettier": "2.3.2"
+  }
+}
