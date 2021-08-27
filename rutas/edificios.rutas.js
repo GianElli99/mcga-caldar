@@ -4,16 +4,15 @@ const {
   postEdificios,
   deleteEdificios,
   putEdificios,
-  saludar,
 } = require('../controladoras/edificios.controladoras');
 
 const router = Router();
 
-router.get('/', saludar, getEdificios);
+router.get('/', getEdificios);
 
 router.post('/', postEdificios);
 
-router.delete('/', deleteEdificios);
+router.delete('/:id', deleteEdificios);
 
 router.put('/', putEdificios);
 
