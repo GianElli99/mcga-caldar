@@ -1,11 +1,11 @@
 [
   {
     "id": 688,
-    "direccion": "703 Transport Court",
-    "ciudad": "Cacequi",
-    "codigo_postal": 33,
+    "direccion": "",
+    "ciudad": "",
+    "codigo_postal": "",
     "es_particular": false,
-    "contacto": "147-629-3744"
+    "contacto": ""
   },
   {
     "id": 614,

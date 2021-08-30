@@ -12,36 +12,68 @@ const obtenerEdificios = (req = request, res = response) => {
 
 const obtenerEdificio = (req = request, res = response) => {
   try {
-    const edificios = listarEdificios();
-    res.send(edificios);
+    const edificioId = parseInt(req.params.id);
+    const edificio = listarEdificios().find(
+      (edificio) => edificio.id === edificioId
+    );
+
+    if (edificio) {
+      res.json(edificio);
+    } else {
+      res.json({});
+    }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
 
 const agregarEdificio = (req = request, res = response) => {
-  res.send('Edificios POST desde controladora');
+  try {
+    const {
+      direccion = '',
+      ciudad = '',
+      codigo_postal = '',
+      es_particular = true,
+      contacto = '',
+    } = req.body;
+    const id = Math.round(Math.random() * 1000);
+
+    const nuevoEdificio = {
+      id,
+      direccion,
+      ciudad,
+      codigo_postal,
+      es_particular,
+      contacto,
+    }; //TODO: necesita refactorizacion, crear clase edificio
+    const edificios = listarEdificios();
+    edificios.push(nuevoEdificio);
+    guardarEdificios(edificios);
+
+    res.json(nuevoEdificio);
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
 };
 
 const eliminarEdificio = (req = request, res = response) => {
   try {
     const edificioId = parseInt(req.params.id);
-    const edificios = listarEdificios();
+    let edificios = listarEdificios();
 
-    const edificiosRestantes = edificios.filter(
-      (edificio) => edificio.id !== edificioId
+    const edificioAEliminar = edificios.find(
+      (edificio) => edificio.id === edificioId
     );
 
-    if (edificiosRestantes.length !== edificios.length) {
-      guardarEdificios(edificiosRestantes);
+    if (edificioAEliminar) {
+      edificios = edificios.filter(
+        (edificio) => edificio !== edificioAEliminar
+      );
+      guardarEdificios(edificios);
 
-      res.json({
-        mensaje: 'Edificio eliminado correctamente',
-      });
+      res.json(edificioAEliminar);
     } else {
-      res.json({
-        mensaje: 'No se ha encontrado ningún edificio con tal ID',
-      });
+      res.json({});
     }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
@@ -49,7 +81,42 @@ const eliminarEdificio = (req = request, res = response) => {
 };
 
 const modificarEdificio = (req = request, res = response) => {
-  res.send('Edificios PUT desde controladora');
+  try {
+    const id = parseInt(req.params.id);
+    const {
+      direccion = '',
+      ciudad = '',
+      codigo_postal = '',
+      es_particular = true,
+      contacto = '',
+    } = req.body;
+
+    const edificioModificado = {
+      id,
+      direccion,
+      ciudad,
+      codigo_postal,
+      es_particular,
+      contacto,
+    }; //TODO: necesita refactorizacion, crear clase edificio
+    let edificios = listarEdificios();
+    let modificacionRealizada = false;
+    for (let i = 0; i < edificios.length; i++) {
+      if (edificioModificado.id === edificios[i].id) {
+        edificios[i] = edificioModificado;
+        modificacionRealizada = true;
+        break;
+      }
+    }
+    if (modificacionRealizada) {
+      guardarEdificios(edificios);
+      res.json(edificioModificado);
+    } else {
+      res.json({});
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
 };
 
 const listarEdificios = () => {
