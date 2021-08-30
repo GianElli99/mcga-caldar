@@ -1,19 +1,22 @@
 const { Router } = require('express');
 const {
-  getEdificios,
-  postEdificios,
-  deleteEdificios,
-  putEdificios,
+  obtenerEdificios,
+  obtenerEdificio,
+  agregarEdificio,
+  eliminarEdificio,
+  modificarEdificio,
 } = require('../controladoras/edificios.controladoras');
 
 const router = Router();
 
-router.get('/', getEdificios);
+router.get('/', obtenerEdificios);
 
-router.post('/', postEdificios);
+router.get('/:id', obtenerEdificio);
 
-router.delete('/:id', deleteEdificios);
+router.post('/', agregarEdificio);
 
-router.put('/', putEdificios);
+router.delete('/:id', eliminarEdificio);
+
+router.put('/:id', modificarEdificio);
 
 module.exports = router;

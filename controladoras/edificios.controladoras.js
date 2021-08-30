@@ -1,23 +1,32 @@
 const { request, response } = require('express');
 const fs = require('fs');
 
-const getEdificios = (req = request, res = response) => {
+const obtenerEdificios = (req = request, res = response) => {
   try {
-    const edificios = obtenerEdificios();
+    const edificios = listarEdificios();
     res.send(edificios);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
 
-const postEdificios = (req = request, res = response) => {
+const obtenerEdificio = (req = request, res = response) => {
+  try {
+    const edificios = listarEdificios();
+    res.send(edificios);
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
+};
+
+const agregarEdificio = (req = request, res = response) => {
   res.send('Edificios POST desde controladora');
 };
 
-const deleteEdificios = (req = request, res = response) => {
+const eliminarEdificio = (req = request, res = response) => {
   try {
     const edificioId = parseInt(req.params.id);
-    const edificios = obtenerEdificios();
+    const edificios = listarEdificios();
 
     const edificiosRestantes = edificios.filter(
       (edificio) => edificio.id !== edificioId
@@ -39,11 +48,11 @@ const deleteEdificios = (req = request, res = response) => {
   }
 };
 
-const putEdificios = (req = request, res = response) => {
+const modificarEdificio = (req = request, res = response) => {
   res.send('Edificios PUT desde controladora');
 };
 
-const obtenerEdificios = () => {
+const listarEdificios = () => {
   let datosCrudos = fs.readFileSync('./datos/edificios.json');
   let edificios = JSON.parse(datosCrudos);
 
@@ -58,8 +67,9 @@ const guardarEdificios = (edificios) => {
 };
 
 module.exports = {
-  getEdificios,
-  postEdificios,
-  deleteEdificios,
-  putEdificios,
+  obtenerEdificios,
+  obtenerEdificio,
+  agregarEdificio,
+  eliminarEdificio,
+  modificarEdificio,
 };
