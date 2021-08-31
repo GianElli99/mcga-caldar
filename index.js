@@ -1,17 +1,15 @@
-const { json } = require('body-parser');
 const express = require('express');
+const { json } = require('body-parser');
 
+const routerCalderas = require('./rutas/calderas.rutas');
 const routerEdificios = require('./rutas/edificios.rutas');
 
-const app = express();
 const PORT = 8090;
+const app = express();
 
 app.use(json());
 
-app.get('/', (req, res) => {
-  res.send('Hi!');
-});
-
+app.use('/calderas', routerCalderas);
 app.use('/edificios', routerEdificios);
 
 app.listen(PORT, () => {
