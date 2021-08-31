@@ -1,9 +1,17 @@
 const { request, response } = require('express');
 const fs = require('fs');
+const { parse } = require('path');
 
 const obtenerCalderas = (req = request, res = response) => {
   try {
-    const calderas = listarCalderas();
+    const { descripcion } = req.query;
+    let calderas = listarCalderas();
+
+    if (descripcion) {
+      calderas = calderas.filter(
+        (c) => c.descripcion.toLowerCase() === descripcion.toLowerCase()
+      );
+    }
     res.send(calderas);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
@@ -66,7 +74,7 @@ const modificarCaldera = (req = request, res = response) => {
 
 const eliminarCaldera = (req = request, res = response) => {
   try {
-    const calderaId = req.params.id;
+    const calderaId = parseInt(req.params.id);
     let calderas = listarCalderas();
 
     const calderaAEliminar = calderas.find(
@@ -86,7 +94,7 @@ const eliminarCaldera = (req = request, res = response) => {
 
 // Metodos utiles
 const guardarCalderas = (calderas) => {
-  const guardarCalderasData = JSON.stringify(calderas);
+  const guardarCalderasData = JSON.stringify(calderas, null, 2);
   fs.writeFileSync('./datos/calderas.json', guardarCalderasData);
 };
 const listarCalderas = () => {
