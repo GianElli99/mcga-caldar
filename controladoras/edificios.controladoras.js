@@ -3,7 +3,26 @@ const fs = require('fs');
 
 const obtenerEdificios = (req = request, res = response) => {
   try {
-    const edificios = listarEdificios();
+    const { es_particular, ciudad } = req.query;
+
+    let edificios = listarEdificios();
+
+    if (
+      es_particular &&
+      (es_particular === 'true' || es_particular === 'false')
+    ) {
+      let particularBooleano = es_particular === 'true';
+      edificios = edificios.filter(
+        (edif) => edif.es_particular === particularBooleano
+      );
+    }
+
+    if (ciudad) {
+      edificios = edificios.filter((edif) =>
+        edif.ciudad.toLowerCase().includes(ciudad.toLowerCase())
+      );
+    }
+
     res.send(edificios);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
