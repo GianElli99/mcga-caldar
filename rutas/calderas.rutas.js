@@ -6,12 +6,12 @@ const {
   agregarCaldera,
   eliminarCaldera,
   modificarCaldera,
-  // obtenerCaldera,
+  obtenerCaldera,
 } = require('../controladoras/calderas.controladoras');
 
 router.get('/', obtenerCalderas);
 
-// router.get('/:id', obtenerCaldera);
+router.get('/:id', obtenerCaldera);
 
 router.post('/', agregarCaldera);
 

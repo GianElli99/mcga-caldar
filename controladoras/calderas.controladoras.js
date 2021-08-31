@@ -10,9 +10,22 @@ const obtenerCalderas = (req = request, res = response) => {
   }
 };
 
-// const obtenerCaldera = (req = request, res = response) => {
-//   res.send('hola crack');
-// };
+const obtenerCaldera = (req = request, res = response) => {
+  try {
+    const calderaId = parseInt(req.params.id);
+    const caldera = listarCalderas().find(
+      (caldera) => caldera.id === calderaId
+    );
+
+    if (caldera) {
+      res.json(caldera);
+    } else {
+      res.json({});
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
+};
 
 const agregarCaldera = (req = request, res = response) => {
   const calderas = listarCalderas();
@@ -51,7 +64,25 @@ const modificarCaldera = (req = request, res = response) => {
   res.status(200).json(calderaData);
 };
 
-const eliminarCaldera = (req = request, res = response) => {};
+const eliminarCaldera = (req = request, res = response) => {
+  try {
+    const calderaId = req.params.id;
+    let calderas = listarCalderas();
+
+    const calderaAEliminar = calderas.find(
+      (caldera) => caldera.id === calderaId
+    );
+
+    if (calderaAEliminar) {
+      calderas = calderas.filter((caldera) => caldera !== calderaAEliminar);
+    }
+    guardarCalderas(calderas);
+
+    res.json(calderaAEliminar);
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
+};
 
 // Metodos utiles
 const guardarCalderas = (calderas) => {
@@ -65,6 +96,7 @@ const listarCalderas = () => {
 
 module.exports = {
   obtenerCalderas,
+  obtenerCaldera,
   eliminarCaldera,
   agregarCaldera,
   modificarCaldera,
