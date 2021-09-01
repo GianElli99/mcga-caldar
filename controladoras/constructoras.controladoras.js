@@ -3,27 +3,17 @@ const fs = require('fs');
 
 const obtenerConstructoras = (req = request, res = response) => {
   try {
-    const { es_particular, ciudad } = req.query;
+    const { nombre } = req.query;
 
-    let edificios = listarEdificios();
+    let constructoras = listarConstructoras();
 
-    if (
-      es_particular &&
-      (es_particular === 'true' || es_particular === 'false')
-    ) {
-      let particularBooleano = es_particular === 'true';
-      edificios = edificios.filter(
-        (edif) => edif.es_particular === particularBooleano
+    if (nombre) {
+      constructoras = constructoras.filter((constructora) =>
+        constructora.nombre.toLowerCase().includes(nombre.toLowerCase())
       );
     }
 
-    if (ciudad) {
-      edificios = edificios.filter((edif) =>
-        edif.ciudad.toLowerCase().includes(ciudad.toLowerCase())
-      );
-    }
-
-    res.send(edificios);
+    res.send(constructoras);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -31,13 +21,13 @@ const obtenerConstructoras = (req = request, res = response) => {
 
 const obtenerConstructora = (req = request, res = response) => {
   try {
-    const edificioId = parseInt(req.params.id);
-    const edificio = listarEdificios().find(
-      (edificio) => edificio.id === edificioId
+    const constructoraId = parseInt(req.params.id);
+    const constructora = listarConstructoras().find(
+      (constructora) => constructora.id === constructoraId
     );
 
-    if (edificio) {
-      res.json(edificio);
+    if (constructora) {
+      res.json(constructora);
     } else {
       res.json({});
     }
@@ -46,7 +36,22 @@ const obtenerConstructora = (req = request, res = response) => {
   }
 };
 
-const obtenerEdificios = (req = request, res = response) => {};
+const obtenerEdificios = (req = request, res = response) => {
+  try {
+    const constructoraId = parseInt(req.params.id);
+    const constructora = listarConstructoras().find(
+      (constructora) => constructora.id === constructoraId
+    );
+
+    if (constructora) {
+      res.json(constructora.edificiosIds);
+    } else {
+      res.json({});
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
+};
 
 const agregarConstructora = (req = request, res = response) => {
   try {
