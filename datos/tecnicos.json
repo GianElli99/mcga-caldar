@@ -1,0 +1,65 @@
+[
+  {
+    "id": 1,
+    "nombre": "Dane Duplain",
+    "direccion": "60 Garrison Point",
+    "ciudad": "Pomabamba",
+    "telefono": "699-352-8459",
+    "especializacion": [
+      "A"
+    ]
+  },
+  {
+    "id": 2,
+    "nombre": "Ches Realy",
+    "direccion": "2311 Parkside Circle",
+    "ciudad": "Fushëkuqe",
+    "telefono": "577-954-9191",
+    "especializacion": [
+      "C"
+    ]
+  },
+  {
+    "id": 3,
+    "nombre": "Fran Shearsby",
+    "direccion": "1295 Londonderry Point",
+    "ciudad": "Shirone",
+    "telefono": "228-437-9925",
+    "especializacion": [
+      "B",
+      "D"
+    ]
+  },
+  {
+    "id": 4,
+    "nombre": "Darlleen Beckwith",
+    "direccion": "977 Larry Pass",
+    "ciudad": "La Broquerie",
+    "telefono": "957-199-0126",
+    "especializacion": [
+      "A",
+      "D"
+    ]
+  },
+  {
+    "id": 7,
+    "nombre": "Thorn Slee",
+    "direccion": "14068 Shelley Road",
+    "ciudad": "Kurashiki",
+    "telefono": "220-785-4222",
+    "especializacion": [
+      "A"
+    ]
+  },
+  {
+    "id": 8,
+    "nombre": "Carole Gascoine",
+    "direccion": "9 Lukken Terrace",
+    "ciudad": "Aix-en-Provence",
+    "telefono": "904-238-1287",
+    "especializacion": [
+      "B",
+      "A"
+    ]
+  }
+]
