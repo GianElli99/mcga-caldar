@@ -56,27 +56,25 @@ const obtenerEdificios = (req = request, res = response) => {
 const agregarConstructora = (req = request, res = response) => {
   try {
     const {
-      direccion = '',
-      ciudad = '',
-      codigo_postal = '',
-      es_particular = true,
-      contacto = '',
+      nombre = '',
+      cuit = '',
+      telefono = '',
+      edificiosIds = [],
     } = req.body;
-    const id = Math.round(Math.random() * 1000);
+    const id = Math.round(Math.random() * 10000);
 
-    const nuevoEdificio = {
+    const nuevaConstructora = {
       id,
-      direccion,
-      ciudad,
-      codigo_postal,
-      es_particular,
-      contacto,
-    }; //TODO: necesita refactorizacion, crear clase edificio
-    const edificios = listarEdificios();
-    edificios.push(nuevoEdificio);
-    guardarEdificios(edificios);
+      nombre,
+      cuit,
+      telefono,
+      edificiosIds,
+    }; //TODO: necesita refactorizacion, crear clase constructora
+    const constructoras = listarConstructoras();
+    constructoras.push(nuevaConstructora);
+    guardarConstructoras(constructoras);
 
-    res.json(nuevoEdificio);
+    res.json(nuevaConstructora);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -84,20 +82,20 @@ const agregarConstructora = (req = request, res = response) => {
 
 const eliminarConstructora = (req = request, res = response) => {
   try {
-    const edificioId = parseInt(req.params.id);
-    let edificios = listarEdificios();
+    const constructoraId = parseInt(req.params.id);
+    let constructoras = listarConstructoras();
 
-    const edificioAEliminar = edificios.find(
-      (edificio) => edificio.id === edificioId
+    const constructoraAEliminar = constructoras.find(
+      (constructora) => constructora.id === constructoraId
     );
 
-    if (edificioAEliminar) {
-      edificios = edificios.filter(
-        (edificio) => edificio !== edificioAEliminar
+    if (constructoraAEliminar) {
+      constructoras = constructoras.filter(
+        (edificio) => edificio !== constructoraAEliminar
       );
-      guardarEdificios(edificios);
+      guardarConstructoras(constructoras);
 
-      res.json(edificioAEliminar);
+      res.json(constructoraAEliminar);
     } else {
       res.json({});
     }
@@ -110,33 +108,31 @@ const modificarConstructora = (req = request, res = response) => {
   try {
     const id = parseInt(req.params.id);
     const {
-      direccion = '',
-      ciudad = '',
-      codigo_postal = '',
-      es_particular = true,
-      contacto = '',
+      nombre = '',
+      cuit = '',
+      telefono = '',
+      edificiosIds = [],
     } = req.body;
 
-    const edificioModificado = {
+    const constructoraModificada = {
       id,
-      direccion,
-      ciudad,
-      codigo_postal,
-      es_particular,
-      contacto,
-    }; //TODO: necesita refactorizacion, crear clase edificio
-    let edificios = listarEdificios();
+      nombre,
+      cuit,
+      telefono,
+      edificiosIds,
+    }; //TODO: necesita refactorizacion, crear clase constructora
+    let constructoras = listarConstructoras();
     let modificacionRealizada = false;
-    for (let i = 0; i < edificios.length; i++) {
-      if (edificioModificado.id === edificios[i].id) {
-        edificios[i] = edificioModificado;
+    for (let i = 0; i < constructoras.length; i++) {
+      if (constructoraModificada.id === constructoras[i].id) {
+        constructoras[i] = constructoraModificada;
         modificacionRealizada = true;
         break;
       }
     }
     if (modificacionRealizada) {
-      guardarEdificios(edificios);
-      res.json(edificioModificado);
+      guardarConstructoras(constructoras);
+      res.json(constructoraModificada);
     } else {
       res.json({});
     }
