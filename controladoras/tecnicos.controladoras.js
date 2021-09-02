@@ -3,17 +3,30 @@ const fs = require('fs');
 
 const obtenerTecnicos = (req = request, res = response) => {
   try {
-    const { especializacion } = req.query;
+    const { especializacion, ciudad } = req.query;
 
     let tecnicos = listarTecnicos();
 
     if (especializacion) {
-      tecnicos = tecnicos.filter((t) => t.especializacion === especializacion);
+      // tecnicos = tecnicos.filter((tecnico) => {
+      //   for (let i = 0; i < tecnicos.length; i++) {
+      //     for (let j = 0; j < tecnicos[i].especializacion.length; j++) {
+      //       tecnicos[i].especializacion[j].toLowerCase() ===
+      //         especializacion.toLocaleLowerCase();
+      //     }
+      //   }
+      // });
+    }
+
+    if (ciudad) {
+      tecnicos = tecnicos.filter((tecnico) =>
+        tecnico.ciudad.toLowerCase().includes(ciudad.toLowerCase())
+      );
     }
 
     res.send(tecnicos);
   } catch (error) {
-    res.status(500).json({ error: 'Ha ocurrido un error' });
+    res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
 
@@ -57,23 +70,41 @@ const agregarTecnico = (req = request, res = response) => {
 
 const modificarTecnico = (req = request, res = response) => {
   try {
-    const tecnicoId = parseInt(req.params.id);
-    const tecnicoData = req.body;
-    const tecnicos = listarTecnicos();
+    const id = parseInt(req.params.id);
+    const {
+      nombre = '',
+      direccion = '',
+      ciudad = '',
+      telefono = '',
+      especializacion = [],
+    } = req.body;
 
-    const buscarTecnicoId = tecnicos.find((id) => id.tecnicoId === tecnicoId);
-    if (buscarTecnicoId === undefined) {
-      return res.status(409).send('No se encontro el tecnico con ese ID');
+    const tecnicoModificado = {
+      id,
+      nombre,
+      direccion,
+      ciudad,
+      telefono,
+      especializacion,
+    };
+
+    let tecnicos = listarTecnicos();
+    let modificacionRealizada = false;
+    for (let i = 0; i < tecnicos.length; i++) {
+      if (tecnicoModificado.id === tecnicos[i].id) {
+        tecnicos[i] = tecnicoModificado;
+        modificacionRealizada = true;
+        break;
+      }
     }
-
-    const actulizarTecnico = tecnicos.find((id) => id.tecnicoId === tecnicoId);
-
-    actulizarTecnico.push(tecnicoData);
-
-    guardarTecnicos(actulizarTecnico);
-    res.status(200).json(tecnicoData);
+    if (modificacionRealizada) {
+      guardarTecnicos(tecnicos);
+      res.json(tecnicoModificado);
+    } else {
+      res.json({});
+    }
   } catch (error) {
-    res.status(500).json({ error: 'Ha ocurrido un error' });
+    res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
 

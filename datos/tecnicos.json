@@ -1,12 +1,12 @@
 [
   {
     "id": 1,
-    "nombre": "Dane Duplain",
+    "nombre": "Elli gianfranco",
     "direccion": "60 Garrison Point",
-    "ciudad": "Pomabamba",
+    "ciudad": "Carcaraña",
     "telefono": "699-352-8459",
     "especializacion": [
-      "A"
+      "B"
     ]
   },
   {
@@ -59,6 +59,16 @@
     "telefono": "904-238-1287",
     "especializacion": [
       "B",
+      "A"
+    ]
+  },
+  {
+    "id": 5,
+    "nombre": "Ivan Sangermano",
+    "direccion": "60 Garrison Point",
+    "ciudad": "Pomabamba",
+    "telefono": "699-352-8459",
+    "especializacion": [
       "A"
     ]
   }
