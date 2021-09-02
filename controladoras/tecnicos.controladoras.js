@@ -8,14 +8,17 @@ const obtenerTecnicos = (req = request, res = response) => {
     let tecnicos = listarTecnicos();
 
     if (especializacion) {
-      // tecnicos = tecnicos.filter((tecnico) => {
-      //   for (let i = 0; i < tecnicos.length; i++) {
-      //     for (let j = 0; j < tecnicos[i].especializacion.length; j++) {
-      //       tecnicos[i].especializacion[j].toLowerCase() ===
-      //         especializacion.toLocaleLowerCase();
-      //     }
-      //   }
-      // });
+      tecnicos = tecnicos.filter((tecnico) => {
+        for (let j = 0; j < tecnico.especializacion.length; j++) {
+          if (
+            tecnico.especializacion[j].toLowerCase() ===
+            especializacion.toLocaleLowerCase()
+          ) {
+            return true;
+          }
+        }
+        return false;
+      });
     }
 
     if (ciudad) {
