@@ -95,10 +95,10 @@ const eliminarCaldera = (req = request, res = response) => {
 // Metodos utiles
 const guardarCalderas = (calderas) => {
   const guardarCalderasData = JSON.stringify(calderas, null, 2);
-  fs.writeFileSync('./datos/calderas.json', guardarCalderasData);
+  fs.writeFileSync('./src/datos/calderas.json', guardarCalderasData);
 };
 const listarCalderas = () => {
-  let calderasJson = fs.readFileSync('./datos/calderas.json');
+  let calderasJson = fs.readFileSync('./src/datos/calderas.json');
   return JSON.parse(calderasJson);
 };
 

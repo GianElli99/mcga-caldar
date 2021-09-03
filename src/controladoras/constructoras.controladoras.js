@@ -142,7 +142,7 @@ const modificarConstructora = (req = request, res = response) => {
 };
 
 const listarConstructoras = () => {
-  let datosCrudos = fs.readFileSync('./datos/constructoras.json');
+  let datosCrudos = fs.readFileSync('./src/datos/constructoras.json');
   let edificios = JSON.parse(datosCrudos);
 
   return edificios;
@@ -150,7 +150,7 @@ const listarConstructoras = () => {
 
 const guardarConstructoras = (edificios) => {
   fs.writeFileSync(
-    './datos/constructoras.json',
+    './src/datos/constructoras.json',
     JSON.stringify(edificios, null, 2)
   );
 };

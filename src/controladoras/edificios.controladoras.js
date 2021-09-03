@@ -25,6 +25,7 @@ const obtenerEdificios = (req = request, res = response) => {
 
     res.send(edificios);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
@@ -139,7 +140,7 @@ const modificarEdificio = (req = request, res = response) => {
 };
 
 const listarEdificios = () => {
-  let datosCrudos = fs.readFileSync('./datos/edificios.json');
+  let datosCrudos = fs.readFileSync('./src/datos/edificios.json');
   let edificios = JSON.parse(datosCrudos);
 
   return edificios;
@@ -147,7 +148,7 @@ const listarEdificios = () => {
 
 const guardarEdificios = (edificios) => {
   fs.writeFileSync(
-    './datos/edificios.json',
+    './src/datos/edificios.json',
     JSON.stringify(edificios, null, 2)
   );
 };
