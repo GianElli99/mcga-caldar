@@ -1,5 +1,6 @@
 const { request, response } = require('express');
 const fs = require('fs');
+const path = require('path');
 
 const obtenerCalderas = (req = request, res = response) => {
   try {
@@ -13,6 +14,7 @@ const obtenerCalderas = (req = request, res = response) => {
     }
     res.send(calderas);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
@@ -108,10 +110,15 @@ const eliminarCaldera = (req = request, res = response) => {
 // Metodos utiles
 const guardarCalderas = (calderas) => {
   const guardarCalderasData = JSON.stringify(calderas, null, 2);
-  fs.writeFileSync('./src/datos/calderas.json', guardarCalderasData);
+  fs.writeFileSync(
+    path.resolve(__dirname, '../datos/calderas.json'),
+    guardarCalderasData
+  );
 };
 const listarCalderas = () => {
-  let calderasJson = fs.readFileSync('./src/datos/calderas.json');
+  let calderasJson = fs.readFileSync(
+    path.resolve(__dirname, '../datos/calderas.json')
+  );
   return JSON.parse(calderasJson);
 };
 

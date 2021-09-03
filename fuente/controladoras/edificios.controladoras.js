@@ -26,7 +26,6 @@ const obtenerEdificios = (req = request, res = response) => {
 
     res.send(edificios);
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
