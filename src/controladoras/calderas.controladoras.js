@@ -1,5 +1,6 @@
 const { request, response } = require('express');
 const fs = require('fs');
+const { parse } = require('path');
 
 const obtenerCalderas = (req = request, res = response) => {
   try {
@@ -54,35 +55,21 @@ const agregarCaldera = (req = request, res = response) => {
 };
 
 const modificarCaldera = (req = request, res = response) => {
-  try {
-    const id = parseInt(req.params.id);
-    const { nombre = '', descripcion = '' } = req.body;
+  const calderaId = req.params.id;
+  const calderaData = req.body;
+  const calderas = listarCalderas();
 
-    const calderaModificada = {
-      id,
-      nombre,
-      descripcion,
-    };
-
-    let calderas = listarCalderas();
-    let modificacionRealizada = false;
-
-    for (let i = 0; i < calderas.length; i++) {
-      if (calderaModificada.id === calderas[i].id) {
-        calderas[i] = calderaModificada;
-        modificacionRealizada = true;
-        break;
-      }
-    }
-    if (modificacionRealizada) {
-      guardarCalderas(calderas);
-      res.json(calderaModificada);
-    } else {
-      res.json({});
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
+  const buscarCalderaId = calderas.find((id) => id.calderaId === calderaId);
+  if (!buscarCalderaId) {
+    return res.status(409).send('no se encontro la caldera con ese ID');
   }
+
+  const actulizarCaldera = calderas.find((id) => id.calderaId === calderaId);
+
+  actulizarCaldera.push(calderaData);
+
+  guardarCalderas(actulizarCaldera);
+  res.status(200).json(calderaData);
 };
 
 const eliminarCaldera = (req = request, res = response) => {
@@ -108,10 +95,10 @@ const eliminarCaldera = (req = request, res = response) => {
 // Metodos utiles
 const guardarCalderas = (calderas) => {
   const guardarCalderasData = JSON.stringify(calderas, null, 2);
-  fs.writeFileSync('./datos/calderas.json', guardarCalderasData);
+  fs.writeFileSync('./src/datos/calderas.json', guardarCalderasData);
 };
 const listarCalderas = () => {
-  let calderasJson = fs.readFileSync('./datos/calderas.json');
+  let calderasJson = fs.readFileSync('./src/datos/calderas.json');
   return JSON.parse(calderasJson);
 };
 

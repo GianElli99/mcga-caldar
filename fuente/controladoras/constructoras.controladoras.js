@@ -1,5 +1,6 @@
 const { request, response } = require('express');
 const fs = require('fs');
+const path = require('path');
 
 const obtenerConstructoras = (req = request, res = response) => {
   try {
@@ -142,7 +143,9 @@ const modificarConstructora = (req = request, res = response) => {
 };
 
 const listarConstructoras = () => {
-  let datosCrudos = fs.readFileSync('./datos/constructoras.json');
+  let datosCrudos = fs.readFileSync(
+    path.resolve(__dirname, '../datos/constructoras.json')
+  );
   let edificios = JSON.parse(datosCrudos);
 
   return edificios;
@@ -150,7 +153,7 @@ const listarConstructoras = () => {
 
 const guardarConstructoras = (edificios) => {
   fs.writeFileSync(
-    './datos/constructoras.json',
+    path.resolve(__dirname, '../datos/constructoras.json'),
     JSON.stringify(edificios, null, 2)
   );
 };

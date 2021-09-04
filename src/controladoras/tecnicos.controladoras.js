@@ -134,10 +134,10 @@ const eliminarTecnico = (req = request, res = response) => {
 
 const guardarTecnicos = (tecnicos) => {
   const guardarTecnicosData = JSON.stringify(tecnicos, null, 2);
-  fs.writeFileSync('./datos/tecnicos.json', guardarTecnicosData);
+  fs.writeFileSync('./src/datos/tecnicos.json', guardarTecnicosData);
 };
 const listarTecnicos = () => {
-  let datosCrudos = fs.readFileSync('./datos/tecnicos.json');
+  let datosCrudos = fs.readFileSync('./src/datos/tecnicos.json');
   let tecnicos = JSON.parse(datosCrudos);
 
   return tecnicos;
