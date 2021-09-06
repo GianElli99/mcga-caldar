@@ -1,13 +1,12 @@
 const { Router } = require('express');
 const {
-  obtenerConstructora,
-  obtenerConstructoras,
-  obtenerEdificio,
-  obtenerEdificios,
+  obtenerClientes,
+  obtenerCliente,
 } = require('../controladoras/clientes.controladoras');
 
 const router = Router();
 
-router.get('/', obtenerConstructoras, obtenerEdificios);
+router.get('/', obtenerClientes);
+router.get('/:id', obtenerCliente);
 
-router.get('/:id', obtenerConstructora, obtenerEdificio);
+module.exports = router;

@@ -14,7 +14,6 @@ const obtenerCalderas = (req = request, res = response) => {
     }
     res.send(calderas);
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
