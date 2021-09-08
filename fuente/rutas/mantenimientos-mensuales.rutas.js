@@ -4,6 +4,7 @@ const {
   obtenerMantenimientos,
   obtenerMantenimiento,
   generarMantenimientos,
+  generarMantenimiento,
   modificarMantenimiento,
   eliminarMantenimiento,
 } = require('../controladoras/mantenimientos-mensuales.controladoras');
@@ -14,7 +15,9 @@ router.get('/', obtenerMantenimientos); //todos los mant mensuales, agregar filt
 
 router.get('/:id', obtenerMantenimiento); //filtro por id
 
-router.post('/', generarMantenimientos); //generar la distribucion para el mes
+router.post('/automatico', generarMantenimientos); //generar la distribucion para el mes
+
+router.post('/', generarMantenimiento);
 
 router.put('/:id', modificarMantenimiento); //modificar
 

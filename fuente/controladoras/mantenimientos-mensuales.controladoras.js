@@ -49,6 +49,35 @@ const obtenerMantenimiento = (req = request, res = response) => {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
+const generarMantenimiento = (req = request, res = response) => {
+  try {
+    const {
+      numeroMes = 0,
+      calderaId = null,
+      tecnicoAsignadoId = null,
+      minutosNecesarios = null,
+      tipoCaldera = '',
+    } = req.body;
+    const id = Math.round(Math.random() * 1000);
+
+    const nuevoMantenimiento = {
+      id,
+      hecho: false,
+      numeroMes,
+      calderaId,
+      tecnicoAsignadoId,
+      minutosNecesarios,
+      tipoCaldera,
+    }; //TODO: necesita refactorizacion
+    let mantenimientos = listarMantenimientos();
+    mantenimientos.push(nuevoMantenimiento);
+    guardarMantenimientos(mantenimientos);
+
+    res.json(nuevoMantenimiento);
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
+};
 
 const generarMantenimientos = (req = request, res = response) => {
   try {
@@ -114,6 +143,41 @@ const generarMantenimientos = (req = request, res = response) => {
 
 const modificarMantenimiento = (req = request, res = response) => {
   try {
+    const id = parseInt(req.params.id);
+
+    const {
+      numeroMes = 0,
+      hecho = false,
+      calderaId = null,
+      tecnicoAsignadoId = null,
+      minutosNecesarios = null,
+      tipoCaldera = '',
+    } = req.body;
+
+    const mantenimientoModificado = {
+      id,
+      hecho,
+      numeroMes,
+      calderaId,
+      tecnicoAsignadoId,
+      minutosNecesarios,
+      tipoCaldera,
+    }; //TODO: necesita refactorizacion
+    let mantenimientos = listarMantenimientos();
+    let modificacionRealizada = false;
+    for (let i = 0; i < mantenimientos.length; i++) {
+      if (mantenimientoModificado.id === mantenimientos[i].id) {
+        mantenimientos[i] = mantenimientoModificado;
+        modificacionRealizada = true;
+        break;
+      }
+    }
+    if (modificacionRealizada) {
+      guardarMantenimientos(mantenimientos);
+      res.json(mantenimientoModificado);
+    } else {
+      res.json({});
+    }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -121,6 +185,23 @@ const modificarMantenimiento = (req = request, res = response) => {
 
 const eliminarMantenimiento = (req = request, res = response) => {
   try {
+    const mantenimientoId = parseInt(req.params.id);
+    let mantenimientos = listarMantenimientos();
+
+    const mantenimientoAEliminar = mantenimientos.find(
+      (manten) => manten.id === mantenimientoId
+    );
+
+    if (mantenimientoAEliminar) {
+      mantenimientos = mantenimientos.filter(
+        (manten) => manten !== mantenimientoAEliminar
+      );
+      guardarMantenimientos(mantenimientos);
+
+      res.json(mantenimientoAEliminar);
+    } else {
+      res.json({});
+    }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -187,6 +268,7 @@ module.exports = {
   obtenerMantenimientos,
   obtenerMantenimiento,
   generarMantenimientos,
+  generarMantenimiento,
   modificarMantenimiento,
   eliminarMantenimiento,
 };

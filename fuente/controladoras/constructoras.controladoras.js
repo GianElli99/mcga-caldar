@@ -92,7 +92,7 @@ const eliminarConstructora = (req = request, res = response) => {
 
     if (constructoraAEliminar) {
       constructoras = constructoras.filter(
-        (edificio) => edificio !== constructoraAEliminar
+        (constructora) => constructora !== constructoraAEliminar
       );
       guardarConstructoras(constructoras);
 
