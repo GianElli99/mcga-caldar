@@ -1,0 +1,110 @@
+[
+  {
+    "id": 1,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 44,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "A"
+  },
+  {
+    "id": 2,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 45,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "B"
+  },
+  {
+    "id": 3,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 46,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "B"
+  },
+  {
+    "id": 4,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 47,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "C"
+  },
+  {
+    "id": 5,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 48,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "C"
+  },
+  {
+    "id": 6,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 49,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "C"
+  },
+  {
+    "id": 7,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 54,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "D"
+  },
+  {
+    "id": 8,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 55,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "A"
+  },
+  {
+    "id": 9,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 56,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "B"
+  },
+  {
+    "id": 10,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 57,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "B"
+  },
+  {
+    "id": 11,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 58,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "B"
+  },
+  {
+    "id": 12,
+    "numeroMes": 9,
+    "hecho": false,
+    "calderaId": 59,
+    "tecnicoAsignadoId": null,
+    "minutosNecesarios": 120,
+    "tipoCaldera": "A"
+  }
+]
