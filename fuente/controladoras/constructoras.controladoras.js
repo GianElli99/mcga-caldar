@@ -146,15 +146,15 @@ const listarConstructoras = () => {
   let datosCrudos = fs.readFileSync(
     path.resolve(__dirname, '../datos/constructoras.json')
   );
-  let edificios = JSON.parse(datosCrudos);
+  let constructoras = JSON.parse(datosCrudos);
 
-  return edificios;
+  return constructoras;
 };
 
-const guardarConstructoras = (edificios) => {
+const guardarConstructoras = (constructoras) => {
   fs.writeFileSync(
     path.resolve(__dirname, '../datos/constructoras.json'),
-    JSON.stringify(edificios, null, 2)
+    JSON.stringify(constructoras, null, 2)
   );
 };
 

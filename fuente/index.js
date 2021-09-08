@@ -6,6 +6,7 @@ const routerEdificios = require('./rutas/edificios.rutas');
 const routerConstructoras = require('./rutas/constructoras.rutas');
 const routerTecnicos = require('./rutas/tecnicos.rutas');
 const routerMantenimientosMensuales = require('./rutas/mantenimientos-mensuales.rutas');
+const routerClientes = require('./rutas/clientes.rutas');
 require('dotenv').config();
 
 const port = process.env.PORT || 8090;
@@ -18,6 +19,7 @@ app.use('/calderas', routerCalderas);
 app.use('/edificios', routerEdificios);
 app.use('/constructoras', routerConstructoras);
 app.use('/mantenimientos/mensuales', routerMantenimientosMensuales);
+app.use('/clientes', routerClientes);
 
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
