@@ -4,6 +4,30 @@ const path = require('path');
 
 const obtenerMantenimientos = (req = request, res = response) => {
   try {
+    let { calderaId, tecnicoAsignadoId, tipoCaldera } = req.query;
+
+    let mantenimientos = listarMantenimientos();
+    if (calderaId) {
+      calderaId = parseInt(calderaId);
+      mantenimientos = mantenimientos.filter(
+        (manten) => manten.calderaId === calderaId
+      );
+    }
+
+    if (tecnicoAsignadoId) {
+      tecnicoAsignadoId = parseInt(tecnicoAsignadoId);
+      mantenimientos = mantenimientos.filter(
+        (manten) => manten.tecnicoAsignadoId === tecnicoAsignadoId
+      );
+    }
+
+    if (tipoCaldera) {
+      mantenimientos = mantenimientos.filter(
+        (manten) =>
+          manten.tipoCaldera.toLowerCase() === tipoCaldera.toLowerCase()
+      );
+    }
+    res.json(mantenimientos);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -11,6 +35,16 @@ const obtenerMantenimientos = (req = request, res = response) => {
 
 const obtenerMantenimiento = (req = request, res = response) => {
   try {
+    const mantenimientoId = parseInt(req.params.id);
+    const mantenimiento = listarMantenimientos().find(
+      (manten) => manten.id === mantenimientoId
+    );
+
+    if (mantenimiento) {
+      res.json(mantenimiento);
+    } else {
+      res.json({});
+    }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -33,6 +67,8 @@ const generarMantenimientos = (req = request, res = response) => {
       };
       mantenimientos.push(mantenimiento);
     }
+    //conseguir los tecnicos que solo saben reparar un tipo de caldera
+    //falta contemplar horas de trabajo
     const tecnicos = listarTecnicos();
     let tecnicosExclusivos = {
       A: obtenerIdsTecnicosExclusivos('A', tecnicos),
@@ -46,14 +82,32 @@ const generarMantenimientos = (req = request, res = response) => {
       if (tecnicosExclusivos[tipoCaldera].length > 0) {
         mantenimientos[i].tecnicoAsignadoId =
           tecnicosExclusivos[tipoCaldera][0];
+        tecnicosExclusivos[tipoCaldera].push(
+          tecnicosExclusivos[tipoCaldera].shift()
+        );
       }
     }
-    console.log(mantenimientos);
-    res.json({});
+    let tecnicosFlexibles = {
+      A: obtenerIdsTecnicos('A', tecnicos),
+      B: obtenerIdsTecnicos('B', tecnicos),
+      C: obtenerIdsTecnicos('C', tecnicos),
+      D: obtenerIdsTecnicos('D', tecnicos),
+    };
+    for (let i = 0; i < mantenimientos.length; i++) {
+      let { tipoCaldera } = mantenimientos[i];
+      if (!mantenimientos[i].tecnicoAsignadoId) {
+        mantenimientos[i].tecnicoAsignadoId = tecnicosFlexibles[tipoCaldera][0];
+        tecnicosFlexibles[tipoCaldera].push(
+          tecnicosFlexibles[tipoCaldera].shift()
+        );
+      }
+    }
+
+    guardarMantenimientos(mantenimientos);
+    res.json(mantenimientos);
 
     // asignar un tecnico a cada mantenimiento mensual
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
@@ -74,7 +128,7 @@ const eliminarMantenimiento = (req = request, res = response) => {
 
 const listarMantenimientos = () => {
   let datosCrudos = fs.readFileSync(
-    path.resolve(__dirname, '../mantenimientos-mensuales.json')
+    path.resolve(__dirname, '../datos/mantenimientos-mensuales.json')
   );
   let mantenimientos = JSON.parse(datosCrudos);
 
@@ -115,6 +169,18 @@ const obtenerIdsTecnicosExclusivos = (tipoCaldera, tecnicos) => {
     }
   }
   return tecnicosExclusivosIds;
+};
+
+const obtenerIdsTecnicos = (tipoCaldera, tecnicos) => {
+  let tecnicosIds = [];
+  for (let i = 0; i < tecnicos.length; i++) {
+    for (let j = 0; j < tecnicos[i].especializacion.length; j++) {
+      if (tecnicos[i].especializacion[j] === tipoCaldera) {
+        tecnicosIds.push(tecnicos[i].id);
+      }
+    }
+  }
+  return tecnicosIds;
 };
 
 module.exports = {
