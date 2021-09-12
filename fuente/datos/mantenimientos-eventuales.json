@@ -1,0 +1,74 @@
+[
+  {
+    "id": 4687,
+    "hecho": true,
+    "dia": "11/25/2020",
+    "calderaId": 638,
+    "tecnicoAsignadoId": 3,
+    "minutosNecesarios": 300,
+    "tipoCaldera": "D"
+  },
+  {
+    "id": 7116,
+    "dia": "6/16/2021",
+    "hecho": false,
+    "calderaId": 6380,
+    "tecnicoAsignadoId": 4,
+    "minutosNecesarios": 300,
+    "tipoCaldera": "D"
+  },
+  {
+    "id": 3949,
+    "dia": "10/18/2020",
+    "hecho": false,
+    "calderaId": 836,
+    "tecnicoAsignadoId": 2,
+    "minutosNecesarios": 300,
+    "tipoCaldera": "C"
+  },
+  {
+    "id": 2952,
+    "dia": "3/26/2021",
+    "hecho": false,
+    "calderaId": 682,
+    "tecnicoAsignadoId": 1,
+    "minutosNecesarios": 300,
+    "tipoCaldera": "B"
+  },
+  {
+    "id": 8058,
+    "dia": "12/28/2021",
+    "hecho": false,
+    "calderaId": 123,
+    "tecnicoAsignadoId": 5,
+    "minutosNecesarios": 300,
+    "tipoCaldera": "A"
+  },
+  {
+    "id": 7536,
+    "dia": "8/18/2020",
+    "hecho": false,
+    "calderaId": 111,
+    "tecnicoAsignadoId": 1,
+    "minutosNecesarios": 300,
+    "tipoCaldera": "B"
+  },
+  {
+    "id": 487,
+    "hecho": false,
+    "dia": "12/21/2020",
+    "calderaId": 638,
+    "tecnicoAsignadoId": 3,
+    "minutosNecesarios": 300,
+    "tipoCaldera": "D"
+  },
+  {
+    "id": 119,
+    "hecho": false,
+    "dia": "12/24/2020",
+    "calderaId": 638,
+    "tecnicoAsignadoId": 3,
+    "minutosNecesarios": 300,
+    "tipoCaldera": "D"
+  }
+]
