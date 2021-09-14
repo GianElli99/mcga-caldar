@@ -9,8 +9,8 @@ const routerMantenimientosMensuales = require('./rutas/mantenimientos-mensuales.
 const routerClientes = require('./rutas/clientes.rutas');
 require('dotenv').config();
 const { conectarBD } = require('./basededatos/configuracion');
-const Caldera = require('./modelos/caldera');
-const Edificio = require('./modelos/edificio');
+const Tecnico = require('./modelos/tecnico');
+const Mantenimiento = require('./modelos/mantenimiento');
 
 const port = process.env.PORT || 8090;
 const app = express();
@@ -28,20 +28,23 @@ app.listen(port, async () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
   await conectarBD();
 
-  const edificio = new Edificio({
-    direccion: 'Lisandro de la Torre 671',
-    ciudad: 'Montes de Oca',
-    nombre: 'Los Alamos',
-    codigoPostal: '2521',
-    esParticular: true,
+  const tecnico = new Tecnico({
+    nombre: 'Matias',
+    apellido: 'Virgili',
+    especializaciones: ['A', 'B', 'C'],
+    telefono: '252146877',
+    dni: '41635948',
+    direccion: 'Salta 504',
   });
-  await edificio.save();
-  const caldera = new Caldera({
-    tipo: 'B',
-    estaIntalada: false,
-    tiempoMantenimientoMinutos: 200,
-    edificioId: edificio._id,
+  await tecnico.save();
+  const mantenimiento = new Mantenimiento({
+    tipo: 'ASDFG',
+    realizado: false,
+    mes: 9,
+    anio: 2021,
+    tecnicoId: tecnico._id,
+    calderaId: tecnico._id,
   });
-  await caldera.save();
+  await mantenimiento.save({});
   console.log('guardado');
 });
