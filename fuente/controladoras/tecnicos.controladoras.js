@@ -1,32 +1,34 @@
 const { request, response } = require('express');
 const fs = require('fs');
 const path = require('path');
+const Tecnico = require('../modelos/tecnico');
 
-const obtenerTecnicos = (req = request, res = response) => {
+const obtenerTecnicos = async (req = request, res = response) => {
   try {
-    const { especializacion, ciudad } = req.query;
+    const { especializaciones, nombre } = req.query;
 
-    let tecnicos = listarTecnicos();
+    //let tecnicos = listarTecnicos();
+    const tecnicos = await Tecnico.find();
 
-    if (especializacion) {
-      tecnicos = tecnicos.filter((tecnico) => {
-        for (let j = 0; j < tecnico.especializacion.length; j++) {
-          if (
-            tecnico.especializacion[j].toLowerCase() ===
-            especializacion.toLocaleLowerCase()
-          ) {
-            return true;
-          }
-        }
-        return false;
-      });
-    }
+    // if (especializaciones) {
+    //   tecnicos = tecnicos.filter((tecnico) => {
+    //     for (let j = 0; j < tecnico.especializacion.length; j++) {
+    //       if (
+    //         tecnico.especializacion[j].toLowerCase() ===
+    //         especializaciones.toLocaleLowerCase()
+    //       ) {
+    //         return true;
+    //       }
+    //     }
+    //     return false;
+    //   });
+    // }
 
-    if (ciudad) {
-      tecnicos = tecnicos.filter((tecnico) =>
-        tecnico.ciudad.toLowerCase().includes(ciudad.toLowerCase())
-      );
-    }
+    // if (nombre) {
+    //   tecnicos = tecnicos.filter((tecnico) =>
+    //     tecnico.ciudad.toLowerCase().includes(nombre.toLowerCase())
+    //   );
+    // }
 
     res.send(tecnicos);
   } catch (error) {
@@ -34,12 +36,10 @@ const obtenerTecnicos = (req = request, res = response) => {
   }
 };
 
-const obtenerTecnico = (req = request, res = response) => {
+const obtenerTecnico = async (req = request, res = response) => {
   try {
-    const tecnicoId = parseInt(req.params.id);
-    const tecnico = listarTecnicos().find(
-      (tecnico) => tecnico.id === tecnicoId
-    );
+    const tecnicoId = req.params.id;
+    const tecnico = await Tecnico.findById(tecnicoId);
 
     if (tecnico) {
       res.json(tecnico);
@@ -51,59 +51,65 @@ const obtenerTecnico = (req = request, res = response) => {
   }
 };
 
-const agregarTecnico = (req = request, res = response) => {
-  const tecnicos = listarTecnicos();
+const agregarTecnico = async (req = request, res = response) => {
+  const { nombre, apellido, especializaciones, telefono, dni, direccion } =
+    req.body;
+  const tecnico = new Tecnico({
+    nombre,
+    apellido,
+    especializaciones,
+    telefono,
+    dni,
+    direccion,
+  });
 
-  const nuevoTecnico = req.body;
+  await tecnico.save();
 
-  if (
-    nuevoTecnico.id === null ||
-    nuevoTecnico.nombre === null ||
-    nuevoTecnico.direccion == null ||
-    nuevoTecnico.telefono == null ||
-    nuevoTecnico.especializacion === null
-  ) {
-    return res.status(401).json({ error: 'Datos ingresados incorrectos' });
-  }
+  // if (
+  //   nuevoTecnico.nombre === null ||
+  //   nuevoTecnico.apellido === null ||
+  //   nuevoTecnico.direccion == null ||
+  //   nuevoTecnico.telefono == null ||
+  //   nuevoTecnico.especializacion === null
+  // ) {
+  //   return res.status(401).json({ error: 'Datos ingresados incorrectos' });
+  // }
 
-  tecnicos.push(nuevoTecnico);
-
-  guardarTecnicos(tecnicos);
-  res.status(201).json(nuevoTecnico);
+  res.status(201).json(tecnico);
 };
 
-const modificarTecnico = (req = request, res = response) => {
+const modificarTecnico = async (req = request, res = response) => {
   try {
-    const id = parseInt(req.params.id);
-    const {
-      nombre = '',
-      direccion = '',
-      ciudad = '',
-      telefono = '',
-      especializacion = [],
-    } = req.body;
+    const tecnicoId = req.params.id;
+    // const {
+    //   nombre = '',
+    //   direccion = '',
+    //   ciudad = '',
+    //   telefono = '',
+    //   especializacion = [],
+    // } = req.body;
 
-    const tecnicoModificado = {
-      id,
-      nombre,
-      direccion,
-      ciudad,
-      telefono,
-      especializacion,
-    };
+    // const tecnicoModificado = {
+    //   id: tecnicoId,
+    //   nombre,
+    //   direccion,
+    //   ciudad,
+    //   telefono,
+    //   especializacion,
+    // };
+    const tecnico = await Tecnico.findByIdAndUpdate(tecnicoId, req.body);
 
-    let tecnicos = listarTecnicos();
-    let modificacionRealizada = false;
-    for (let i = 0; i < tecnicos.length; i++) {
-      if (tecnicoModificado.id === tecnicos[i].id) {
-        tecnicos[i] = tecnicoModificado;
-        modificacionRealizada = true;
-        break;
-      }
-    }
-    if (modificacionRealizada) {
-      guardarTecnicos(tecnicos);
-      res.json(tecnicoModificado);
+    // let tecnicos = listarTecnicos();
+    // let modificacionRealizada = false;
+    // for (let i = 0; i < tecnicos.length; i++) {
+    //   if (tecnicoModificado.id === tecnicos[i].id) {
+    //     tecnicos[i] = tecnicoModificado;
+    //     modificacionRealizada = true;
+    //     break;
+    //   }
+    // }
+    if (tecnico) {
+      res.json(tecnico);
     } else {
       res.json({});
     }
@@ -112,41 +118,16 @@ const modificarTecnico = (req = request, res = response) => {
   }
 };
 
-const eliminarTecnico = (req = request, res = response) => {
+const eliminarTecnico = async (req = request, res = response) => {
   try {
-    const tecnicoId = parseInt(req.params.id);
-    let tecnicos = listarTecnicos();
+    const tecnicoId = req.params.id;
 
-    const tecnicoAEliminar = tecnicos.find(
-      (tecnico) => tecnico.id === tecnicoId
-    );
+    const tecnico = await Tecnico.findByIdAndDelete(tecnicoId, req.body);
 
-    if (tecnicoAEliminar) {
-      tecnicos = tecnicos.filter((tecnico) => tecnico !== tecnicoAEliminar);
-    }
-
-    guardarTecnicos(tecnicos);
-
-    res.json(tecnicoAEliminar);
+    res.json(tecnico);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
-};
-
-const guardarTecnicos = (tecnicos) => {
-  const guardarTecnicosData = JSON.stringify(tecnicos, null, 2);
-  fs.writeFileSync(
-    path.resolve(__dirname, '../datos/tecnicos.json'),
-    guardarTecnicosData
-  );
-};
-const listarTecnicos = () => {
-  let datosCrudos = fs.readFileSync(
-    path.resolve(__dirname, '../datos/tecnicos.json')
-  );
-  let tecnicos = JSON.parse(datosCrudos);
-
-  return tecnicos;
 };
 
 module.exports = {
