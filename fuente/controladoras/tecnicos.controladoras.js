@@ -1,152 +1,106 @@
 const { request, response } = require('express');
-const fs = require('fs');
-const path = require('path');
+const Tecnico = require('../modelos/tecnico');
 
-const obtenerTecnicos = (req = request, res = response) => {
+const obtenerTecnicos = async (req = request, res = response) => {
   try {
-    const { especializacion, ciudad } = req.query;
+    const { especializaciones, nombre, estricto } = req.query;
 
-    let tecnicos = listarTecnicos();
-
-    if (especializacion) {
-      tecnicos = tecnicos.filter((tecnico) => {
-        for (let j = 0; j < tecnico.especializacion.length; j++) {
-          if (
-            tecnico.especializacion[j].toLowerCase() ===
-            especializacion.toLocaleLowerCase()
-          ) {
-            return true;
-          }
-        }
-        return false;
-      });
+    let condicionEspecializaciones = {};
+    if (especializaciones.length > 0) {
+      condicionEspecializaciones = {
+        especializaciones: {
+          $all: especializaciones,
+        },
+      };
+      if (estricto) {
+        condicionEspecializaciones.especializaciones.$size =
+          especializaciones.length;
+      }
     }
 
-    if (ciudad) {
-      tecnicos = tecnicos.filter((tecnico) =>
-        tecnico.ciudad.toLowerCase().includes(ciudad.toLowerCase())
-      );
-    }
+    const regex = new RegExp(nombre, 'i');
 
+    const tecnicos = await Tecnico.find({
+      ...condicionEspecializaciones,
+      nombre: { $regex: regex },
+    });
     res.send(tecnicos);
   } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
+    res.status(500).json({ error: 'Ha ocurrido un error' });
   }
 };
 
-const obtenerTecnico = (req = request, res = response) => {
+const obtenerTecnico = async (req = request, res = response) => {
   try {
-    const tecnicoId = parseInt(req.params.id);
-    const tecnico = listarTecnicos().find(
-      (tecnico) => tecnico.id === tecnicoId
-    );
+    const tecnicoId = req.params.id;
+    const tecnico = await Tecnico.findById(tecnicoId);
 
     if (tecnico) {
       res.json(tecnico);
     } else {
-      res.json({});
+      res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
     res.status(500).json({ error: 'Ha ocurrido un error' });
   }
 };
 
-const agregarTecnico = (req = request, res = response) => {
-  const tecnicos = listarTecnicos();
-
-  const nuevoTecnico = req.body;
-
-  if (
-    nuevoTecnico.id === null ||
-    nuevoTecnico.nombre === null ||
-    nuevoTecnico.direccion == null ||
-    nuevoTecnico.telefono == null ||
-    nuevoTecnico.especializacion === null
-  ) {
-    return res.status(401).json({ error: 'Datos ingresados incorrectos' });
-  }
-
-  tecnicos.push(nuevoTecnico);
-
-  guardarTecnicos(tecnicos);
-  res.status(201).json(nuevoTecnico);
-};
-
-const modificarTecnico = (req = request, res = response) => {
+const agregarTecnico = async (req = request, res = response) => {
   try {
-    const id = parseInt(req.params.id);
-    const {
-      nombre = '',
-      direccion = '',
-      ciudad = '',
-      telefono = '',
-      especializacion = [],
-    } = req.body;
+    const tecnico = new Tecnico(req.body);
 
-    const tecnicoModificado = {
-      id,
-      nombre,
-      direccion,
-      ciudad,
-      telefono,
-      especializacion,
-    };
+    const existeTecnico = await Tecnico.findOne({
+      nombre: req.body.nombre,
+      apellido: req.body.apellido,
+      dni: req.body.dni,
+    });
 
-    let tecnicos = listarTecnicos();
-    let modificacionRealizada = false;
-    for (let i = 0; i < tecnicos.length; i++) {
-      if (tecnicoModificado.id === tecnicos[i].id) {
-        tecnicos[i] = tecnicoModificado;
-        modificacionRealizada = true;
-        break;
-      }
-    }
-    if (modificacionRealizada) {
-      guardarTecnicos(tecnicos);
-      res.json(tecnicoModificado);
+    if (existeTecnico) {
+      res.status(400).json({
+        error: 'Ya existe un técnico con el mismo nombre, apellido y dni',
+      });
     } else {
-      res.json({});
+      await tecnico.save();
+      res.status(201).json(tecnico);
     }
   } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
+    res.status(500).json({ error: 'Ha ocurrido un error' });
   }
 };
 
-const eliminarTecnico = (req = request, res = response) => {
+const modificarTecnico = async (req = request, res = response) => {
   try {
-    const tecnicoId = parseInt(req.params.id);
-    let tecnicos = listarTecnicos();
+    const tecnicoId = req.params.id;
 
-    const tecnicoAEliminar = tecnicos.find(
-      (tecnico) => tecnico.id === tecnicoId
-    );
+    const tecnico = await Tecnico.findByIdAndUpdate(tecnicoId, req.body, {
+      new: true,
+    });
 
-    if (tecnicoAEliminar) {
-      tecnicos = tecnicos.filter((tecnico) => tecnico !== tecnicoAEliminar);
+    if (tecnico) {
+      res.json(tecnico);
+    } else {
+      res.status(404).json({ error: 'El recurso no existe' });
     }
-
-    guardarTecnicos(tecnicos);
-
-    res.json(tecnicoAEliminar);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
 
-const guardarTecnicos = (tecnicos) => {
-  const guardarTecnicosData = JSON.stringify(tecnicos, null, 2);
-  fs.writeFileSync(
-    path.resolve(__dirname, '../datos/tecnicos.json'),
-    guardarTecnicosData
-  );
-};
-const listarTecnicos = () => {
-  let datosCrudos = fs.readFileSync(
-    path.resolve(__dirname, '../datos/tecnicos.json')
-  );
-  let tecnicos = JSON.parse(datosCrudos);
+const eliminarTecnico = async (req = request, res = response) => {
+  try {
+    const tecnicoId = req.params.id;
 
-  return tecnicos;
+    const tecnico = await Tecnico.findByIdAndDelete(tecnicoId);
+
+    if (tecnico) {
+      res.json(tecnico);
+    } else {
+      res.status(404).json({ error: 'El recurso no existe' });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
 };
 
 module.exports = {
