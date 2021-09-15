@@ -1,6 +1,4 @@
 const { request, response } = require('express');
-const fs = require('fs');
-const path = require('path');
 const Tecnico = require('../modelos/tecnico');
 
 const obtenerTecnicos = async (req = request, res = response) => {
@@ -28,7 +26,7 @@ const obtenerTecnicos = async (req = request, res = response) => {
     });
     res.send(tecnicos);
   } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
+    res.status(500).json({ error: 'Ha ocurrido un error' });
   }
 };
 
@@ -40,7 +38,7 @@ const obtenerTecnico = async (req = request, res = response) => {
     if (tecnico) {
       res.json(tecnico);
     } else {
-      res.json({});
+      res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
     res.status(500).json({ error: 'Ha ocurrido un error' });
@@ -48,30 +46,26 @@ const obtenerTecnico = async (req = request, res = response) => {
 };
 
 const agregarTecnico = async (req = request, res = response) => {
-  const { nombre, apellido, especializaciones, telefono, dni, direccion } =
-    req.body;
-  const tecnico = new Tecnico({
-    nombre,
-    apellido,
-    especializaciones,
-    telefono,
-    dni,
-    direccion,
-  });
+  try {
+    const tecnico = new Tecnico(req.body);
 
-  await tecnico.save();
+    const existeTecnico = await Tecnico.findOne({
+      nombre: req.body.nombre,
+      apellido: req.body.apellido,
+      dni: req.body.dni,
+    });
 
-  // if (
-  //   nuevoTecnico.nombre === null ||
-  //   nuevoTecnico.apellido === null ||
-  //   nuevoTecnico.direccion == null ||
-  //   nuevoTecnico.telefono == null ||
-  //   nuevoTecnico.especializacion === null
-  // ) {
-  //   return res.status(401).json({ error: 'Datos ingresados incorrectos' });
-  // }
-
-  res.status(201).json(tecnico);
+    if (existeTecnico) {
+      res.status(400).json({
+        error: 'Ya existe un técnico con el mismo nombre, apellido y dni',
+      });
+    } else {
+      await tecnico.save();
+      res.status(201).json(tecnico);
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Ha ocurrido un error' });
+  }
 };
 
 const modificarTecnico = async (req = request, res = response) => {
