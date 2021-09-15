@@ -1,5 +1,5 @@
-const express = require('express');
-const router = express.Router();
+const { query, param } = require('express-validator');
+const { Router } = require('express');
 
 const {
   obtenerCalderas,
@@ -8,15 +8,40 @@ const {
   modificarCaldera,
   obtenerCaldera,
 } = require('../controladoras/calderas.controladoras');
+const convertirElementosAMayusculas = require('../utilidades/convertirElementosAMayusculas');
+const validarCampos = require('../intermediarios/validarCampos');
+const generarCadeValidacionCalderas = require('../intermediarios/generarCadenaValidacionCalderas');
 
-router.get('/', obtenerCalderas);
+const router = Router();
 
-router.get('/:id', obtenerCaldera);
+router.get(
+  '/',
+  [
+    query('tipo').customSanitizer((calderas) => {
+      convertirElementosAMayusculas(calderas);
+    }),
+  ],
+  obtenerCalderas
+);
 
-router.post('/', agregarCaldera);
+router.get('/:id', [param('id').isMongoId(), validarCampos], obtenerCaldera);
 
-router.delete('/:id', eliminarCaldera);
+router.post(
+  '/',
+  [...generarCadeValidacionCalderas(), validarCampos],
+  agregarCaldera
+);
 
-router.put('/:id', modificarCaldera);
+router.delete(
+  '/:id',
+  [param('id').isMongoId(), validarCampos],
+  eliminarCaldera
+);
+
+router.put(
+  '/:id',
+  [param('id').isMongoId(), ...generarCadeValidacionCalderas(), validarCampos],
+  modificarCaldera
+);
 
 module.exports = router;

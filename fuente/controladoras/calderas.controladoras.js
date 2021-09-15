@@ -1,18 +1,19 @@
 const { request, response } = require('express');
-const fs = require('fs');
-const path = require('path');
+const Caldera = require('../modelos/caldera');
 
-const obtenerCalderas = (req = request, res = response) => {
+const obtenerCalderas = async (req = request, res = response) => {
   try {
-    const { descripcion } = req.query;
-    let calderas = listarCalderas();
+    const { tipo, estaInstalada } = req.query;
 
-    if (descripcion) {
-      calderas = calderas.filter(
-        (c) => c.descripcion.toLowerCase() === descripcion.toLowerCase()
-      );
+    if (tipo) {
+      const calderas = await Caldera.find({ tipo: tipo });
+      res.send(calderas);
     }
-    res.send(calderas);
+
+    if (estaInstalada) {
+      const calderas = await Caldera.find({ estaInstalada: estaInstalada });
+      res.send(calderas);
+    }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
