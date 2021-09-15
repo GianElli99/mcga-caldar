@@ -5,31 +5,28 @@ const Tecnico = require('../modelos/tecnico');
 
 const obtenerTecnicos = async (req = request, res = response) => {
   try {
-    const { especializaciones, nombre } = req.query;
+    const { especializaciones, nombre, estricto } = req.query;
+    const especializacionesArray = especializaciones.toUpperCase().split(',');
 
-    //let tecnicos = listarTecnicos();
-    const tecnicos = await Tecnico.find();
+    let condicionEspecializaciones = {};
+    if (especializacionesArray.length > 0) {
+      condicionEspecializaciones = {
+        especializaciones: {
+          $all: especializacionesArray,
+        },
+      };
+      if (estricto === 'true') {
+        condicionEspecializaciones.especializaciones.$size =
+          especializacionesArray.length;
+      }
+    }
 
-    // if (especializaciones) {
-    //   tecnicos = tecnicos.filter((tecnico) => {
-    //     for (let j = 0; j < tecnico.especializacion.length; j++) {
-    //       if (
-    //         tecnico.especializacion[j].toLowerCase() ===
-    //         especializaciones.toLocaleLowerCase()
-    //       ) {
-    //         return true;
-    //       }
-    //     }
-    //     return false;
-    //   });
-    // }
+    const regex = new RegExp(nombre, 'i');
 
-    // if (nombre) {
-    //   tecnicos = tecnicos.filter((tecnico) =>
-    //     tecnico.ciudad.toLowerCase().includes(nombre.toLowerCase())
-    //   );
-    // }
-
+    const tecnicos = await Tecnico.find({
+      ...condicionEspecializaciones,
+      nombre: { $regex: regex },
+    });
     res.send(tecnicos);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
