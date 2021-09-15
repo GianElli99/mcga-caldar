@@ -1,4 +1,4 @@
-const { query, body } = require('express-validator');
+const { query, param } = require('express-validator');
 const { Router } = require('express');
 const {
   obtenerTecnicos,
@@ -9,7 +9,7 @@ const {
 } = require('../controladoras/tecnicos.controladoras');
 const convertirStringEnArray = require('../utilidades/convertirStringEnArray');
 const validarCampos = require('../intermediarios/validarCampos');
-const convertirElementosAMayusculas = require('../utilidades/convertirElementosAMayusculas');
+const generarCadenaValidacionTecnicos = require('../intermediarios/generarCadenaValidacionTecnicos');
 
 const router = Router();
 
@@ -24,26 +24,28 @@ router.get(
   obtenerTecnicos
 );
 
-router.get('/:id', obtenerTecnico);
+router.get('/:id', [param('id').isMongoId(), validarCampos], obtenerTecnico);
 
 router.post(
   '/',
-  [
-    body('nombre', 'El nombre es inválido').trim().notEmpty().isString(),
-    body('apellido', 'El apellido es inválido').trim().notEmpty().isString(),
-    body('especializaciones', 'Las especializaciones son inválidas')
-      .isArray()
-      .customSanitizer(convertirElementosAMayusculas),
-    body('telefono', 'El telefono es inválido').trim().notEmpty().isString(),
-    body('dni', 'El dni es inválido').trim().notEmpty().isString(),
-    body('direccion', 'La direccion es inválida').trim().notEmpty().isString(),
-    validarCampos,
-  ],
+  [...generarCadenaValidacionTecnicos(), validarCampos],
   agregarTecnico
 );
 
-router.put('/:id', modificarTecnico);
+router.put(
+  '/:id',
+  [
+    param('id').isMongoId(),
+    ...generarCadenaValidacionTecnicos(),
+    validarCampos,
+  ],
+  modificarTecnico
+);
 
-router.delete('/:id', eliminarTecnico);
+router.delete(
+  '/:id',
+  [param('id').isMongoId(), validarCampos],
+  eliminarTecnico
+);
 
 module.exports = router;

@@ -71,37 +71,15 @@ const agregarTecnico = async (req = request, res = response) => {
 const modificarTecnico = async (req = request, res = response) => {
   try {
     const tecnicoId = req.params.id;
-    // const {
-    //   nombre = '',
-    //   direccion = '',
-    //   ciudad = '',
-    //   telefono = '',
-    //   especializacion = [],
-    // } = req.body;
 
-    // const tecnicoModificado = {
-    //   id: tecnicoId,
-    //   nombre,
-    //   direccion,
-    //   ciudad,
-    //   telefono,
-    //   especializacion,
-    // };
-    const tecnico = await Tecnico.findByIdAndUpdate(tecnicoId, req.body);
+    const tecnico = await Tecnico.findByIdAndUpdate(tecnicoId, req.body, {
+      new: true,
+    });
 
-    // let tecnicos = listarTecnicos();
-    // let modificacionRealizada = false;
-    // for (let i = 0; i < tecnicos.length; i++) {
-    //   if (tecnicoModificado.id === tecnicos[i].id) {
-    //     tecnicos[i] = tecnicoModificado;
-    //     modificacionRealizada = true;
-    //     break;
-    //   }
-    // }
     if (tecnico) {
       res.json(tecnico);
     } else {
-      res.json({});
+      res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
@@ -112,10 +90,15 @@ const eliminarTecnico = async (req = request, res = response) => {
   try {
     const tecnicoId = req.params.id;
 
-    const tecnico = await Tecnico.findByIdAndDelete(tecnicoId, req.body);
+    const tecnico = await Tecnico.findByIdAndDelete(tecnicoId);
 
-    res.json(tecnico);
+    if (tecnico) {
+      res.json(tecnico);
+    } else {
+      res.status(404).json({ error: 'El recurso no existe' });
+    }
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
