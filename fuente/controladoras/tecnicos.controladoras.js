@@ -6,18 +6,17 @@ const Tecnico = require('../modelos/tecnico');
 const obtenerTecnicos = async (req = request, res = response) => {
   try {
     const { especializaciones, nombre, estricto } = req.query;
-    const especializacionesArray = especializaciones.toUpperCase().split(',');
 
     let condicionEspecializaciones = {};
-    if (especializacionesArray.length > 0) {
+    if (especializaciones.length > 0) {
       condicionEspecializaciones = {
         especializaciones: {
-          $all: especializacionesArray,
+          $all: especializaciones,
         },
       };
-      if (estricto === 'true') {
+      if (estricto) {
         condicionEspecializaciones.especializaciones.$size =
-          especializacionesArray.length;
+          especializaciones.length;
       }
     }
 

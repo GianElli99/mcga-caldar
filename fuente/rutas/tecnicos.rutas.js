@@ -1,3 +1,4 @@
+const { check, query } = require('express-validator');
 const { Router } = require('express');
 const {
   obtenerTecnicos,
@@ -6,10 +7,20 @@ const {
   agregarTecnico,
   modificarTecnico,
 } = require('../controladoras/tecnicos.controladoras');
+const convertirStringEnArray = require('../utilidades/convertirStringEnArray');
 
 const router = Router();
 
-router.get('/', obtenerTecnicos);
+router.get(
+  '/',
+  [
+    query('especializaciones').customSanitizer((especializaciones) =>
+      convertirStringEnArray(especializaciones, ',')
+    ),
+    query('estricto').toBoolean(),
+  ],
+  obtenerTecnicos
+);
 
 router.get('/:id', obtenerTecnico);
 
