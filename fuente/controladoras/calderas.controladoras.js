@@ -19,68 +19,45 @@ const obtenerCalderas = async (req = request, res = response) => {
   }
 };
 
-const obtenerCaldera = (req = request, res = response) => {
+const obtenerCaldera = async (req = request, res = response) => {
   try {
-    const calderaId = parseInt(req.params.id);
-    const caldera = listarCalderas().find(
-      (caldera) => caldera.id === calderaId
-    );
+    const calderaId = req.params.id;
+    const caldera = await Caldera.findById(calderaId);
 
     if (caldera) {
       res.json(caldera);
     } else {
-      res.json({});
+      res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
+    res.status(500).json({ error: 'Ha ocurrido un error' });
   }
 };
 
-const agregarCaldera = (req = request, res = response) => {
-  const calderas = listarCalderas();
+const agregarCaldera = async (req = request, res = response) => {
+  try {
+    const caldera = new Caldera(req.body);
 
-  const nuevaCaldera = req.body;
-
-  if (
-    nuevaCaldera.id === null ||
-    nuevaCaldera.nombre === null ||
-    nuevaCaldera.descripcion == null
-  ) {
-    return res.status(401).json({ error: 'Datos ingresados incorrectos' });
+    await caldera.save();
+    res.send(caldera);
+    res.status(201).json(caldera);
+  } catch {
+    res.status(500).json({ error: 'Ha ocurrido un error' });
   }
-
-  calderas.push(nuevaCaldera);
-
-  guardarCalderas(calderas);
-  res.status(201).json(nuevaCaldera);
 };
 
 const modificarCaldera = (req = request, res = response) => {
   try {
-    const id = parseInt(req.params.id);
-    const { nombre = '', descripcion = '' } = req.body;
+    const calderaId = req.params.id;
 
-    const calderaModificada = {
-      id,
-      nombre,
-      descripcion,
-    };
+    const caldera = await Caldera.findByIdAndUpdate(calderaId, req.body, {
+      new: true,
+    });
 
-    let calderas = listarCalderas();
-    let modificacionRealizada = false;
-
-    for (let i = 0; i < calderas.length; i++) {
-      if (calderaModificada.id === calderas[i].id) {
-        calderas[i] = calderaModificada;
-        modificacionRealizada = true;
-        break;
-      }
-    }
-    if (modificacionRealizada) {
-      guardarCalderas(calderas);
-      res.json(calderaModificada);
+    if (caldera) {
+      res.json(caldera);
     } else {
-      res.json({});
+      res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
@@ -89,37 +66,19 @@ const modificarCaldera = (req = request, res = response) => {
 
 const eliminarCaldera = (req = request, res = response) => {
   try {
-    const calderaId = parseInt(req.params.id);
-    let calderas = listarCalderas();
+    const calderaId = req.params.id;
 
-    const calderaAEliminar = calderas.find(
-      (caldera) => caldera.id === calderaId
-    );
+    const caldera = await Caldera.findByIdAndDelete(calderaId);
 
-    if (calderaAEliminar) {
-      calderas = calderas.filter((caldera) => caldera !== calderaAEliminar);
+    if (caldera) {
+      res.json(caldera);
+    } else {
+      res.status(404).json({ error: 'El recurso no existe' });
     }
-    guardarCalderas(calderas);
-
-    res.json(calderaAEliminar);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
-};
-
-// Metodos utiles
-const guardarCalderas = (calderas) => {
-  const guardarCalderasData = JSON.stringify(calderas, null, 2);
-  fs.writeFileSync(
-    path.resolve(__dirname, '../datos/calderas.json'),
-    guardarCalderasData
-  );
-};
-const listarCalderas = () => {
-  let calderasJson = fs.readFileSync(
-    path.resolve(__dirname, '../datos/calderas.json')
-  );
-  return JSON.parse(calderasJson);
 };
 
 module.exports = {
