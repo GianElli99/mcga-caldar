@@ -9,7 +9,8 @@
     "start": "node fuente/index.js",
     "format": "prettier --write .",
     "check": "prettier --check .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",

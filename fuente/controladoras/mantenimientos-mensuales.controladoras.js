@@ -79,7 +79,7 @@ const generarMantenimiento = (req = request, res = response) => {
   }
 };
 
-const generarMantenimientos = (req = request, res = response) => {
+const generarMantenimientos = (_req = request, res = response) => {
   try {
     // foreach caldera instalada generar un mantenimiento mensual
     const calderas = listarCalderas();
