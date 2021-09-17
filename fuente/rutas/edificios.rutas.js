@@ -1,3 +1,4 @@
+const { query, param } = require('express-validator');
 const { Router } = require('express');
 const {
   obtenerEdificios,
@@ -6,17 +7,39 @@ const {
   eliminarEdificio,
   modificarEdificio,
 } = require('../controladoras/edificios.controladoras');
+const validarCampos = require('../intermediarios/validarCampos');
+const generarCadenaValidacionEdificios = require('../intermediarios/generarCadenaValidacionEdificios');
 
 const router = Router();
 
-router.get('/', obtenerEdificios);
+router.get(
+  '/',
+  [query('ciudad').trim(), query('es_particular').toBoolean(), validarCampos],
+  obtenerEdificios
+);
 
-router.get('/:id', obtenerEdificio);
+router.get('/:id', [param('id').isMongoId(), validarCampos], obtenerEdificio);
 
-router.post('/', agregarEdificio);
+router.post(
+  '/',
+  [...generarCadenaValidacionEdificios(), validarCampos],
+  agregarEdificio
+);
 
-router.delete('/:id', eliminarEdificio);
+router.put(
+  '/:id',
+  [
+    param('id').isMongoId(),
+    ...generarCadenaValidacionEdificios(),
+    validarCampos,
+  ],
+  modificarEdificio
+);
 
-router.put('/:id', modificarEdificio);
+router.delete(
+  '/:id',
+  [param('id').isMongoId(), validarCampos],
+  eliminarEdificio
+);
 
 module.exports = router;
