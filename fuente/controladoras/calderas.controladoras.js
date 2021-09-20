@@ -64,6 +64,7 @@ const modificarCaldera = (req = request, res = response) => {
   }
 };
 
+let prueba;
 const eliminarCaldera = (req = request, res = response) => {
   try {
     const calderaId = req.params.id;
