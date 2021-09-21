@@ -5,6 +5,12 @@ const obtenerCalderas = async (req = request, res = response) => {
   try {
     const { tipo, estaInstalada } = req.query;
 
+    const calderas = await Caldera.find({
+      tipo: tipo,
+      estaInstalada: estaInstalada,
+    });
+    res.send(calderas);
+
     if (tipo) {
       const calderas = await Caldera.find({ tipo: tipo });
       res.send(calderas);
@@ -46,7 +52,7 @@ const agregarCaldera = async (req = request, res = response) => {
   }
 };
 
-const modificarCaldera = (req = request, res = response) => {
+const modificarCaldera = async (req = request, res = response) => {
   try {
     const calderaId = req.params.id;
 
@@ -64,8 +70,7 @@ const modificarCaldera = (req = request, res = response) => {
   }
 };
 
-let prueba;
-const eliminarCaldera = (req = request, res = response) => {
+const eliminarCaldera = async (req = request, res = response) => {
   try {
     const calderaId = req.params.id;
 
@@ -77,7 +82,6 @@ const eliminarCaldera = (req = request, res = response) => {
       res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };

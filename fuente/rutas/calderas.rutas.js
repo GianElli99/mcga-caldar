@@ -8,7 +8,6 @@ const {
   modificarCaldera,
   obtenerCaldera,
 } = require('../controladoras/calderas.controladoras');
-const convertirElementosAMayusculas = require('../utilidades/convertirElementosAMayusculas');
 const validarCampos = require('../intermediarios/validarCampos');
 const generarCadeValidacionCalderas = require('../intermediarios/generarCadenaValidacionCalderas');
 
@@ -16,11 +15,7 @@ const router = Router();
 
 router.get(
   '/',
-  [
-    query('tipo').customSanitizer((calderas) => {
-      convertirElementosAMayusculas(calderas);
-    }),
-  ],
+  [query('tipo').isString().toUpperCase(), query('estaIntalada').toBoolean()],
   obtenerCalderas
 );
 

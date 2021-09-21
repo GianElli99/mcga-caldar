@@ -1,5 +1,5 @@
 const { body } = require('express-validator');
-const convertirElementosAMayusculas = require('../utilidades/convertirElementosAMayusculas');
+// const validarEstaInstaladaConIdEdificio = require('../utilidades/validarEstaInstaladaConIdEdificio');
 
 const generarCadenaValidacionCalderas = () => {
   return [
@@ -7,16 +7,14 @@ const generarCadenaValidacionCalderas = () => {
       .trim()
       .notEmpty()
       .isString()
-      .customSanitizer(convertirElementosAMayusculas),
+      .toUpperCase(),
     body('estaInstalada', 'El valor es inválido').trim().notEmpty().isBoolean(),
+    // .customSanitizer(validarEstaInstaladaConIdEdificio),
     body('tiempoMantenimientoMinutos', 'El tiempo es invalido')
       .trim()
       .notEmpty()
       .isNumeric(),
-    // body('edificioId', 'El Id del eficio no es correcto')
-    //   .trim()
-    //   .notEmpty()
-    //   .isString(),
+    body('edificioId', 'El Id del eficio no es correcto').trim().isMongoId(),
   ];
 };
 

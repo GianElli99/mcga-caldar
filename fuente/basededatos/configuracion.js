@@ -5,8 +5,10 @@ const conectarBD = async () => {
     await mongoose.connect(process.env.MONGO_CONEXION, {
       useNewUrlParser: true,
     });
+    // eslint-disable-next-line no-console
     console.log('Conexión a la base de datos establecida');
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log(error);
   }
 };
