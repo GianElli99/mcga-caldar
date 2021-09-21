@@ -1,8 +1,39 @@
 const { request, response } = require('express');
+const Mantenimiento = require('../modelos/mantenimiento');
 const fs = require('fs');
 const path = require('path');
 
-const obtenerMantenimientos = (req = request, res = response) => {
+const obtenerMantenimientosMensuales = (req = request, res = response) => {
+  try {
+    let { calderaId, tecnicoAsignadoId, tipoCaldera } = req.query;
+
+    let mantenimientos = listarMantenimientos();
+    if (calderaId) {
+      calderaId = parseInt(calderaId);
+      mantenimientos = mantenimientos.filter(
+        (manten) => manten.calderaId === calderaId
+      );
+    }
+
+    if (tecnicoAsignadoId) {
+      tecnicoAsignadoId = parseInt(tecnicoAsignadoId);
+      mantenimientos = mantenimientos.filter(
+        (manten) => manten.tecnicoAsignadoId === tecnicoAsignadoId
+      );
+    }
+
+    if (tipoCaldera) {
+      mantenimientos = mantenimientos.filter(
+        (manten) =>
+          manten.tipoCaldera.toLowerCase() === tipoCaldera.toLowerCase()
+      );
+    }
+    res.json(mantenimientos);
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
+};
+const obtenerMantenimientosEventuales = (req = request, res = response) => {
   try {
     let { calderaId, tecnicoAsignadoId, tipoCaldera } = req.query;
 
@@ -51,29 +82,9 @@ const obtenerMantenimiento = (req = request, res = response) => {
 };
 const generarMantenimiento = (req = request, res = response) => {
   try {
-    const {
-      numeroMes = 0,
-      calderaId = null,
-      tecnicoAsignadoId = null,
-      minutosNecesarios = null,
-      tipoCaldera = '',
-    } = req.body;
-    const id = Math.round(Math.random() * 1000);
+    const mantenimiento = new Mantenimiento(req.body);
 
-    const nuevoMantenimiento = {
-      id,
-      hecho: false,
-      numeroMes,
-      calderaId,
-      tecnicoAsignadoId,
-      minutosNecesarios,
-      tipoCaldera,
-    }; //TODO: necesita refactorizacion
-    let mantenimientos = listarMantenimientos();
-    mantenimientos.push(nuevoMantenimiento);
-    guardarMantenimientos(mantenimientos);
-
-    res.json(nuevoMantenimiento);
+    res.json(mantenimiento);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -265,7 +276,8 @@ const obtenerIdsTecnicos = (tipoCaldera, tecnicos) => {
 };
 
 module.exports = {
-  obtenerMantenimientos,
+  obtenerMantenimientosMensuales,
+  obtenerMantenimientosEventuales,
   obtenerMantenimiento,
   generarMantenimientos,
   generarMantenimiento,

@@ -1,7 +1,8 @@
 const { Router } = require('express');
 
 const {
-  obtenerMantenimientos,
+  obtenerMantenimientosMensuales,
+  obtenerMantenimientosEventuales,
   obtenerMantenimiento,
   generarMantenimientos,
   generarMantenimiento,
@@ -11,16 +12,18 @@ const {
 
 const router = Router();
 
-router.get('/', obtenerMantenimientos); //todos los mant mensuales, agregar filtros
+router.get('/mensuales', obtenerMantenimientosMensuales);
 
-router.get('/:id', obtenerMantenimiento); //filtro por id
+router.get('/eventuales', obtenerMantenimientosEventuales);
 
-router.post('/automatico', generarMantenimientos); //generar la distribucion para el mes
+router.get('/:id', obtenerMantenimiento);
+
+router.post('/automatico', generarMantenimientos);
 
 router.post('/', generarMantenimiento);
 
-router.put('/:id', modificarMantenimiento); //modificar
+router.put('/:id', modificarMantenimiento);
 
-router.delete('/:id', eliminarMantenimiento); //eliminar
+router.delete('/:id', eliminarMantenimiento);
 
 module.exports = router;
