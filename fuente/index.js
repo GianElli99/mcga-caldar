@@ -23,6 +23,7 @@ app.use('/mantenimientos', routerMantenimientosMensuales);
 app.use('/clientes', routerClientes);
 
 app.listen(port, async () => {
+  // eslint-disable-next-line no-console
   console.log(`Servidor corriendo en http://localhost:${port}`);
   await conectarBD();
 });

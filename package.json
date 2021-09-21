@@ -10,7 +10,7 @@
     "format": "prettier --write .",
     "check": "prettier --check .",
     "prepare": "husky install",
-    "lint": "eslint"
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
