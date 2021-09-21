@@ -1,5 +1,6 @@
 const { request, response } = require('express');
 const Caldera = require('../modelos/caldera');
+const Mantenimiento = require('../modelos/mantenimiento');
 
 const obtenerCalderas = async (req = request, res = response) => {
   try {
@@ -23,6 +24,7 @@ const obtenerCalderas = async (req = request, res = response) => {
 const obtenerCaldera = async (req = request, res = response) => {
   try {
     const calderaId = req.params.id;
+
     const caldera = await Caldera.findById(calderaId);
 
     if (caldera) {
@@ -40,7 +42,6 @@ const agregarCaldera = async (req = request, res = response) => {
     const caldera = new Caldera(req.body);
 
     await caldera.save();
-    res.send(caldera);
     res.status(201).json(caldera);
   } catch (error) {
     res.status(500).json({ error: 'Ha ocurrido un error' });
@@ -69,12 +70,20 @@ const eliminarCaldera = async (req = request, res = response) => {
   try {
     const calderaId = req.params.id;
 
-    const caldera = await Caldera.findByIdAndDelete(calderaId);
+    const calderaSeleccionada = await Caldera.findById(calderaId);
+    const mantenimiento = await Mantenimiento.findOne({ calderaId });
 
-    if (caldera) {
-      res.json(caldera);
+    if (calderaSeleccionada.estaInstalada || mantenimiento) {
+      return res.json({
+        error: 'No se puede eliminar esta caldera',
+      });
     } else {
-      res.status(404).json({ error: 'El recurso no existe' });
+      const caldera = await Caldera.findByIdAndDelete(calderaId);
+      if (caldera) {
+        res.json(caldera);
+      } else {
+        res.status(404).json({ error: 'El recurso no existe' });
+      }
     }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });

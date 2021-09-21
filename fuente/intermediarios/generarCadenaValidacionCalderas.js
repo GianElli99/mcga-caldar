@@ -14,19 +14,9 @@ const generarCadenaValidacionCalderas = () => {
       .toInt(),
     oneOf([
       [body('estaInstalada').equals('true'), body('edificioId').isMongoId()],
-      // body('edificioId', 'El Id del eficio no es correcto')
-      //   .trim()
-      //   .isMongoId(),
       [body('estaInstalada').equals('false')],
     ]),
-    // body('estaInstalada')
-    //   .isBoolean()
-    //   .toBoolean()
-    //.custom(validarEstaInstaladaConIdEdificio),
-    // body('estaInstalada', 'El valor es inválido').trim().notEmpty().isBoolean(),
-    // // .customSanitizer(validarEstaInstaladaConIdEdificio),
-
-    // body('edificioId', 'El Id del eficio no es correcto').trim().isMongoId(),
+    body('estaInstalada').toBoolean(),
   ];
 };
 
