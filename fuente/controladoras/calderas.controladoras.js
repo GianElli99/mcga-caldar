@@ -5,21 +5,16 @@ const obtenerCalderas = async (req = request, res = response) => {
   try {
     const { tipo, estaInstalada } = req.query;
 
-    const calderas = await Caldera.find({
-      tipo: tipo,
-      estaInstalada: estaInstalada,
-    });
-    res.send(calderas);
-
+    let condicionesCaldera = {};
     if (tipo) {
-      const calderas = await Caldera.find({ tipo: tipo });
-      res.send(calderas);
+      condicionesCaldera.tipo = tipo;
+    }
+    if (estaInstalada === true || estaInstalada === false) {
+      condicionesCaldera.estaInstalada = estaInstalada;
     }
 
-    if (estaInstalada) {
-      const calderas = await Caldera.find({ estaInstalada: estaInstalada });
-      res.send(calderas);
-    }
+    const calderas = await Caldera.find(condicionesCaldera);
+    res.send(calderas);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -47,7 +42,7 @@ const agregarCaldera = async (req = request, res = response) => {
     await caldera.save();
     res.send(caldera);
     res.status(201).json(caldera);
-  } catch {
+  } catch (error) {
     res.status(500).json({ error: 'Ha ocurrido un error' });
   }
 };

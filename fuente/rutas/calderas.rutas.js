@@ -10,12 +10,16 @@ const {
 } = require('../controladoras/calderas.controladoras');
 const validarCampos = require('../intermediarios/validarCampos');
 const generarCadeValidacionCalderas = require('../intermediarios/generarCadenaValidacionCalderas');
+const convertirStringEnBooleano = require('../utilidades/convertirStringEnBooleano');
 
 const router = Router();
 
 router.get(
   '/',
-  [query('tipo').isString().toUpperCase(), query('estaIntalada').toBoolean()],
+  [
+    query('tipo').isString().toUpperCase(),
+    query('estaInstalada').customSanitizer(convertirStringEnBooleano),
+  ],
   obtenerCalderas
 );
 
