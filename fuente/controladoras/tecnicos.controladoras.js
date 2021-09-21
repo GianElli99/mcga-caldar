@@ -98,7 +98,6 @@ const eliminarTecnico = async (req = request, res = response) => {
       res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };

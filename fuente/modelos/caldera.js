@@ -6,7 +6,7 @@ const CalderaSchema = Schema({
     required: [true, 'El tipo es obligatorio'],
     enum: ['A', 'B', 'C', 'D'],
   },
-  estaIntalada: {
+  estaInstalada: {
     type: Boolean,
     required: [true, 'El campo estaInstalada es obligatorio'],
   },
