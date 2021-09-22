@@ -9,6 +9,8 @@ const {
   modificarMantenimiento,
   eliminarMantenimiento,
 } = require('../controladoras/mantenimientos-mensuales.controladoras');
+const generarCadenaValidacionMantenimientos = require('../intermediarios/generarCadenaValidacionMantenimientos');
+const validarCampos = require('../intermediarios/validarCampos');
 
 const router = Router();
 
@@ -20,7 +22,11 @@ router.get('/:id', obtenerMantenimiento);
 
 router.post('/automatico', generarMantenimientos);
 
-router.post('/', generarMantenimiento);
+router.post(
+  '/',
+  [...generarCadenaValidacionMantenimientos(), validarCampos],
+  generarMantenimiento
+);
 
 router.put('/:id', modificarMantenimiento);
 
