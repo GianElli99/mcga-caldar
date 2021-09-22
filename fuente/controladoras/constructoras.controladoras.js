@@ -1,161 +1,114 @@
 const { request, response } = require('express');
-const fs = require('fs');
-const path = require('path');
+const Constructora = require('../modelos/constructora');
+const Edificio = require('../modelos/edificio');
 
-const obtenerConstructoras = (req = request, res = response) => {
+const obtenerConstructoras = async (req = request, res = response) => {
   try {
-    const { nombre } = req.query;
+    const { nombre, cuit, telefono } = req.query;
 
-    let constructoras = listarConstructoras();
-
+    let condicionesConstructora = {};
     if (nombre) {
-      constructoras = constructoras.filter((constructora) =>
-        constructora.nombre.toLowerCase().includes(nombre.toLowerCase())
-      );
+      condicionesConstructora.nombre = nombre;
+    }
+    if (cuit) {
+      condicionesConstructora.cuit = cuit;
+    }
+    if (telefono) {
+      condicionesConstructora.telefono = telefono;
     }
 
+    const constructoras = await Constructora.find(condicionesConstructora);
     res.send(constructoras);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
 
-const obtenerConstructora = (req = request, res = response) => {
+const obtenerConstructora = async (req = request, res = response) => {
   try {
-    const constructoraId = parseInt(req.params.id);
-    const constructora = listarConstructoras().find(
-      (constructora) => constructora.id === constructoraId
+    const constructoraId = req.params.id;
+
+    const constructora = await Constructora.findById(constructoraId);
+
+    if (constructora) {
+      res.send(constructora);
+    } else {
+      res.status(404).json({ error: 'El recurso no existe' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
+};
+
+const obtenerEdificios = async (req = request, res = response) => {
+  try {
+    const constructoraId = req.params.id;
+    const constructoraSeleccionada = await Constructora.findById(
+      constructoraId
+    );
+
+    let edificios = await Edificio.find(constructoraSeleccionada);
+
+    if (edificios) {
+      res.json(edificios.nombre + edificios.direccion);
+    } else {
+      res.json({});
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
+};
+
+const agregarConstructora = async (req = request, res = response) => {
+  try {
+    const constructora = new Constructora(req.body);
+
+    await constructora.save();
+    res.status(201).json(constructora);
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
+};
+
+const modificarConstructora = async (req = request, res = response) => {
+  try {
+    const constructoraId = req.params.id;
+
+    const constructora = await Constructora.findByIdAndUpdate(
+      constructoraId,
+      req.body,
+      { new: true }
     );
 
     if (constructora) {
-      res.json(constructora);
+      res.send(constructora);
     } else {
-      res.json({});
+      res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
 
-const obtenerEdificios = (req = request, res = response) => {
+const eliminarConstructora = async (req = request, res = response) => {
   try {
-    const constructoraId = parseInt(req.params.id);
-    const constructora = listarConstructoras().find(
-      (constructora) => constructora.id === constructoraId
-    );
+    const constructoraId = req.params.id;
 
-    if (constructora) {
-      res.json(constructora.edificiosIds);
+    const edificio = await Edificio.findOne({ constructoraId });
+
+    if (edificio) {
+      return res.json({ error: 'No se puede eliminar esta constructora' });
     } else {
-      res.json({});
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
-  }
-};
-
-const agregarConstructora = (req = request, res = response) => {
-  try {
-    const {
-      nombre = '',
-      cuit = '',
-      telefono = '',
-      edificiosIds = [],
-    } = req.body;
-    const id = Math.round(Math.random() * 10000);
-
-    const nuevaConstructora = {
-      id,
-      nombre,
-      cuit,
-      telefono,
-      edificiosIds,
-    }; //TODO: necesita refactorizacion, crear clase constructora
-    const constructoras = listarConstructoras();
-    constructoras.push(nuevaConstructora);
-    guardarConstructoras(constructoras);
-
-    res.json(nuevaConstructora);
-  } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
-  }
-};
-
-const eliminarConstructora = (req = request, res = response) => {
-  try {
-    const constructoraId = parseInt(req.params.id);
-    let constructoras = listarConstructoras();
-
-    const constructoraAEliminar = constructoras.find(
-      (constructora) => constructora.id === constructoraId
-    );
-
-    if (constructoraAEliminar) {
-      constructoras = constructoras.filter(
-        (constructora) => constructora !== constructoraAEliminar
-      );
-      guardarConstructoras(constructoras);
-
-      res.json(constructoraAEliminar);
-    } else {
-      res.json({});
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
-  }
-};
-
-const modificarConstructora = (req = request, res = response) => {
-  try {
-    const id = parseInt(req.params.id);
-    const {
-      nombre = '',
-      cuit = '',
-      telefono = '',
-      edificiosIds = [],
-    } = req.body;
-
-    const constructoraModificada = {
-      id,
-      nombre,
-      cuit,
-      telefono,
-      edificiosIds,
-    }; //TODO: necesita refactorizacion, crear clase constructora
-    let constructoras = listarConstructoras();
-    let modificacionRealizada = false;
-    for (let i = 0; i < constructoras.length; i++) {
-      if (constructoraModificada.id === constructoras[i].id) {
-        constructoras[i] = constructoraModificada;
-        modificacionRealizada = true;
-        break;
+      const constructora = await Constructora.findByIdAndDelete(constructoraId);
+      if (constructora) {
+        res.json(constructora);
+      } else {
+        res.status(404).json({ error: 'El recurso no existe' });
       }
     }
-    if (modificacionRealizada) {
-      guardarConstructoras(constructoras);
-      res.json(constructoraModificada);
-    } else {
-      res.json({});
-    }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
-};
-
-const listarConstructoras = () => {
-  let datosCrudos = fs.readFileSync(
-    path.resolve(__dirname, '../datos/constructoras.json')
-  );
-  let constructoras = JSON.parse(datosCrudos);
-
-  return constructoras;
-};
-
-const guardarConstructoras = (constructoras) => {
-  fs.writeFileSync(
-    path.resolve(__dirname, '../datos/constructoras.json'),
-    JSON.stringify(constructoras, null, 2)
-  );
 };
 
 module.exports = {

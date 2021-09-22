@@ -7,6 +7,7 @@ const {
   modificarConstructora,
   obtenerEdificios,
 } = require('../controladoras/constructoras.controladoras');
+// const generarCadenaValidacionConstructoras = require('../intermediarios/generarCadenaValidacionConstructoras');
 
 const router = Router();
 
