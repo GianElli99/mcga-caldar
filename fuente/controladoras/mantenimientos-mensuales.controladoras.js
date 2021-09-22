@@ -2,6 +2,8 @@ const { request, response } = require('express');
 const Mantenimiento = require('../modelos/mantenimiento');
 const fs = require('fs');
 const path = require('path');
+// const Caldera = require('../modelos/caldera');
+// const Tecnico = require('../modelos/tecnico');
 
 const obtenerMantenimientosMensuales = (req = request, res = response) => {
   try {
@@ -80,10 +82,22 @@ const obtenerMantenimiento = (req = request, res = response) => {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
-const generarMantenimiento = (req = request, res = response) => {
+const generarMantenimiento = async (req = request, res = response) => {
   try {
+    // let esTecnicoValido = true;
     const mantenimiento = new Mantenimiento(req.body);
+    mantenimiento.fecha = Date.now();
 
+    if (mantenimiento.tipo === 'Mensual') {
+      mantenimiento.descripcion = undefined;
+      mantenimiento.tiempoMinutos = undefined;
+    }
+    // const esCalderaValida = Caldera.findById(mantenimiento.calderaId);
+    // if (mantenimiento.tecnicoId) {
+    //   esTecnicoValido = Tecnico.findById(mantenimiento.tecnicoId);
+    // }
+
+    await mantenimiento.save();
     res.json(mantenimiento);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });

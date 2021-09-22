@@ -71,11 +71,24 @@ const agregarTecnico = async (req = request, res = response) => {
 const modificarTecnico = async (req = request, res = response) => {
   try {
     const tecnicoId = req.params.id;
+    let tecnico;
 
-    const tecnico = await Tecnico.findByIdAndUpdate(tecnicoId, req.body, {
-      new: true,
+    const existeTecnico = await Tecnico.findOne({
+      nombre: req.body.nombre,
+      apellido: req.body.apellido,
+      dni: req.body.dni,
+      _id: { $ne: tecnicoId },
     });
 
+    if (existeTecnico) {
+      return res.status(400).json({
+        error: 'Ya existe un técnico con el mismo nombre, apellido y dni',
+      });
+    } else {
+      tecnico = await Tecnico.findByIdAndUpdate(tecnicoId, req.body, {
+        new: true,
+      });
+    }
     if (tecnico) {
       res.json(tecnico);
     } else {
