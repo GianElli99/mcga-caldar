@@ -47,6 +47,7 @@ const obtenerMantenimiento = async (req = request, res = response) => {
     res.status(500).json({ error: 'Ha ocurrido un error' });
   }
 };
+
 const generarMantenimiento = async (req = request, res = response) => {
   try {
     let mantenimiento = new Mantenimiento(req.body);
@@ -180,7 +181,6 @@ const generarMantenimientos = (_req = request, res = response) => {
 const modificarMantenimiento = async (req = request, res = response) => {
   try {
     const mantenimientoId = req.params.id;
-    let esTecnicoValido = true;
     let mantenimiento = req.body;
 
     if (mantenimiento.tipo === 'Mensual') {
@@ -191,43 +191,63 @@ const modificarMantenimiento = async (req = request, res = response) => {
       mantenimiento.fechaRealizado = undefined;
     }
 
-    const esCalderaValida = await Caldera.findById(mantenimiento.calderaId);
-    if (mantenimiento.tecnicoId) {
-      esTecnicoValido = await Tecnico.findById(mantenimiento.tecnicoId);
-    }
-
-    const primerDiaMes = new Date(
-      mantenimiento.fecha.getUTCFullYear(),
-      mantenimiento.fecha.getUTCMonth(),
-      1
-    );
-    const ultimoDiaMes = new Date(
-      mantenimiento.fecha.getUTCFullYear(),
-      mantenimiento.fecha.getUTCMonth() + 1,
-      0
-    );
-    const existeMantenMensualEnMismoMes = await Mantenimiento.findOne({
-      calderaId: mantenimiento.calderaId,
-      fecha: {
-        $gte: primerDiaMes,
-        $lt: ultimoDiaMes,
-      },
-      tipo: 'Mensual',
-      _id: { $ne: mantenimientoId },
+    const caldera = await Caldera.findOne({
+      _id: mantenimiento.calderaId,
+      estaInstalada: true,
     });
-
-    if (esCalderaValida && esTecnicoValido && !existeMantenMensualEnMismoMes) {
-      mantenimiento = await Mantenimiento.findByIdAndUpdate(
-        mantenimientoId,
-        mantenimiento,
-        { new: true }
-      );
-      res.json(mantenimiento);
-    } else {
-      res.status(400).json({
-        error: 'No se puede modificar este manteniminiento',
-      });
+    if (!caldera) {
+      return res
+        .status(400)
+        .json({ error: 'La caldera seleccionada no es válida' });
     }
+    if (mantenimiento.tecnicoId) {
+      const tecnico = await Tecnico.findOne({
+        _id: mantenimiento.tecnicoId,
+        especializaciones: caldera.tipo,
+      });
+      if (!tecnico) {
+        return res
+          .status(400)
+          .json({ error: 'El técnico seleccionado no es válido' });
+      }
+    }
+
+    if (mantenimiento.tipo === 'Mensual') {
+      const primerDiaMes = new Date(
+        mantenimiento.fecha.getUTCFullYear(),
+        mantenimiento.fecha.getUTCMonth(),
+        1
+      );
+      const ultimoDiaMes = new Date(
+        mantenimiento.fecha.getUTCFullYear(),
+        mantenimiento.fecha.getUTCMonth() + 1,
+        0
+      );
+
+      const mantenMensualEnMismoMes = await Mantenimiento.findOne({
+        calderaId: mantenimiento.calderaId,
+        fecha: {
+          $gte: primerDiaMes,
+          $lt: ultimoDiaMes,
+          _id: { $ne: mantenimientoId },
+        },
+        tipo: 'Mensual',
+      });
+      if (mantenMensualEnMismoMes) {
+        return res.status(400).json({
+          error:
+            'Ya existe un mantenimiento mensual para esta caldera en el mes ingresado',
+        });
+      }
+    }
+
+    mantenimiento = await Mantenimiento.findByIdAndUpdate(
+      mantenimientoId,
+      mantenimiento,
+      { new: true }
+    );
+
+    res.json(mantenimiento);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
