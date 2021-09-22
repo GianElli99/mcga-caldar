@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const { param, query } = require('express-validator');
 
 const {
   obtenerMantenimientos,
@@ -8,19 +9,56 @@ const {
   modificarMantenimiento,
   eliminarMantenimiento,
 } = require('../controladoras/mantenimientos-mensuales.controladoras');
+const generarCadenaValidacionMantenimientos = require('../intermediarios/generarCadenaValidacionMantenimientos');
+const validarCampos = require('../intermediarios/validarCampos');
+const capitalizarPrimerLetra = require('../utilidades/capitalizarPrimerLetra');
 
 const router = Router();
 
-router.get('/', obtenerMantenimientos); //todos los mant mensuales, agregar filtros
+router.get(
+  '/',
+  [
+    query('calderaId').optional().isMongoId(),
+    query('tecnicoId').optional().isMongoId(),
+    query('realizado').optional().isBoolean().toBoolean(),
+    query('tipo')
+      .optional()
+      .isString()
+      .trim()
+      .customSanitizer(capitalizarPrimerLetra),
+    validarCampos,
+  ],
+  obtenerMantenimientos
+);
 
-router.get('/:id', obtenerMantenimiento); //filtro por id
+router.get(
+  '/:id',
+  [param('id').isMongoId(), validarCampos],
+  obtenerMantenimiento
+);
 
-router.post('/automatico', generarMantenimientos); //generar la distribucion para el mes
+router.post('/automatico', generarMantenimientos);
 
-router.post('/', generarMantenimiento);
+router.post(
+  '/',
+  [...generarCadenaValidacionMantenimientos(), validarCampos],
+  generarMantenimiento
+);
 
-router.put('/:id', modificarMantenimiento); //modificar
+router.put(
+  '/:id',
+  [
+    param('id').isMongoId(),
+    ...generarCadenaValidacionMantenimientos(),
+    validarCampos,
+  ],
+  modificarMantenimiento
+);
 
-router.delete('/:id', eliminarMantenimiento); //eliminar
+router.delete(
+  '/:id',
+  [param('id').isMongoId(), validarCampos],
+  eliminarMantenimiento
+);
 
 module.exports = router;

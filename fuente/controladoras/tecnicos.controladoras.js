@@ -1,5 +1,7 @@
 const { request, response } = require('express');
+const Mantenimiento = require('../modelos/mantenimiento');
 const Tecnico = require('../modelos/tecnico');
+const TiempoReservado = require('../modelos/tiempoReservado');
 
 const obtenerTecnicos = async (req = request, res = response) => {
   try {
@@ -71,11 +73,24 @@ const agregarTecnico = async (req = request, res = response) => {
 const modificarTecnico = async (req = request, res = response) => {
   try {
     const tecnicoId = req.params.id;
+    let tecnico;
 
-    const tecnico = await Tecnico.findByIdAndUpdate(tecnicoId, req.body, {
-      new: true,
+    const existeTecnico = await Tecnico.findOne({
+      nombre: req.body.nombre,
+      apellido: req.body.apellido,
+      dni: req.body.dni,
+      _id: { $ne: tecnicoId },
     });
 
+    if (existeTecnico) {
+      return res.status(400).json({
+        error: 'Ya existe un técnico con el mismo nombre, apellido y dni',
+      });
+    } else {
+      tecnico = await Tecnico.findByIdAndUpdate(tecnicoId, req.body, {
+        new: true,
+      });
+    }
     if (tecnico) {
       res.json(tecnico);
     } else {
@@ -89,6 +104,18 @@ const modificarTecnico = async (req = request, res = response) => {
 const eliminarTecnico = async (req = request, res = response) => {
   try {
     const tecnicoId = req.params.id;
+
+    const poseeMantenimientos = Mantenimiento.findOne({ tecnicoId: tecnicoId });
+    const poseeTiempoReservado = TiempoReservado.findOne({
+      tecnicoId: tecnicoId,
+    });
+
+    if (poseeMantenimientos || poseeTiempoReservado) {
+      return res.status(400).json({
+        error:
+          'No puede eliminar el técnico porque posee mantenimientos o tiempo reservado',
+      });
+    }
 
     const tecnico = await Tecnico.findByIdAndDelete(tecnicoId);
 
