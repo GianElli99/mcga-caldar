@@ -14,6 +14,7 @@ const generarCadenaValidacionMantenimientos = () => {
       [
         body('realizado').equals('true').toBoolean(),
         body('fechaRealizado').isDate(),
+        body('tecnicoId').isMongoId(),
       ],
       [body('realizado').equals('false').toBoolean()],
     ]),

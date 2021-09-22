@@ -5,7 +5,32 @@ const path = require('path');
 const Caldera = require('../modelos/caldera');
 const Tecnico = require('../modelos/tecnico');
 
-const obtenerMantenimientosMensuales = (req = request, res = response) => {
+const obtenerMantenimientos = async (req = request, res = response) => {
+  try {
+    const { calderaId, tecnicoId, realizado } = req.query;
+    let condicionesFiltro = {};
+    if (tecnicoId) {
+      condicionesFiltro.tecnicoId = tecnicoId;
+    }
+    if (calderaId) {
+      condicionesFiltro.calderaId = calderaId;
+    }
+    if (realizado === true || realizado === false) {
+      condicionesFiltro.realizado = realizado;
+    }
+
+    const mantenimientos = await Mantenimiento.find(condicionesFiltro);
+
+    res.json(mantenimientos);
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
+};
+
+const obtenerMantenimientosMensuales = async (
+  req = request,
+  res = response
+) => {
   try {
     let { calderaId, tecnicoAsignadoId, tipoCaldera } = req.query;
 
@@ -84,7 +109,6 @@ const obtenerMantenimiento = (req = request, res = response) => {
 };
 const generarMantenimiento = async (req = request, res = response) => {
   try {
-    let esTecnicoValido = true;
     let mantenimiento = new Mantenimiento(req.body);
 
     if (mantenimiento.tipo === 'Mensual') {
@@ -95,38 +119,57 @@ const generarMantenimiento = async (req = request, res = response) => {
       mantenimiento.fechaRealizado = undefined;
     }
 
-    const esCalderaValida = await Caldera.findById(mantenimiento.calderaId);
-    if (mantenimiento.tecnicoId) {
-      esTecnicoValido = await Tecnico.findById(mantenimiento.tecnicoId);
-    }
-
-    const primerDiaMes = new Date(
-      mantenimiento.fecha.getUTCFullYear(),
-      mantenimiento.fecha.getUTCMonth(),
-      1
-    );
-    const ultimoDiaMes = new Date(
-      mantenimiento.fecha.getUTCFullYear(),
-      mantenimiento.fecha.getUTCMonth() + 1,
-      0
-    );
-    const existeMantenMensualEnMismoMes = await Mantenimiento.findOne({
-      calderaId: mantenimiento.calderaId,
-      fecha: {
-        $gte: primerDiaMes,
-        $lt: ultimoDiaMes,
-      },
-      tipo: 'Mensual',
+    const caldera = await Caldera.findOne({
+      _id: mantenimiento.calderaId,
+      estaInstalada: true,
     });
-
-    if (esCalderaValida && esTecnicoValido && !existeMantenMensualEnMismoMes) {
-      await mantenimiento.save();
-      res.json(mantenimiento);
-    } else {
-      res.status(400).json({
-        error: 'No se puede añadir este manteniminiento',
-      });
+    if (!caldera) {
+      return res
+        .status(400)
+        .json({ error: 'La caldera seleccionada no es válida' });
     }
+    if (mantenimiento.tecnicoId) {
+      const tecnico = await Tecnico.findOne({
+        _id: mantenimiento.tecnicoId,
+        especializaciones: caldera.tipo,
+      });
+      if (!tecnico) {
+        return res
+          .status(400)
+          .json({ error: 'El técnico seleccionado no es válido' });
+      }
+    }
+
+    if (mantenimiento.tipo === 'Mensual') {
+      const primerDiaMes = new Date(
+        mantenimiento.fecha.getUTCFullYear(),
+        mantenimiento.fecha.getUTCMonth(),
+        1
+      );
+      const ultimoDiaMes = new Date(
+        mantenimiento.fecha.getUTCFullYear(),
+        mantenimiento.fecha.getUTCMonth() + 1,
+        0
+      );
+
+      const mantenMensualEnMismoMes = await Mantenimiento.findOne({
+        calderaId: mantenimiento.calderaId,
+        fecha: {
+          $gte: primerDiaMes,
+          $lt: ultimoDiaMes,
+        },
+        tipo: 'Mensual',
+      });
+      if (mantenMensualEnMismoMes) {
+        return res.status(400).json({
+          error:
+            'Ya existe un mantenimiento mensual para esta caldera en el mes ingresado',
+        });
+      }
+    }
+
+    await mantenimiento.save();
+    res.json(mantenimiento);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -332,6 +375,7 @@ const obtenerIdsTecnicos = (tipoCaldera, tecnicos) => {
 };
 
 module.exports = {
+  obtenerMantenimientos,
   obtenerMantenimientosMensuales,
   obtenerMantenimientosEventuales,
   obtenerMantenimiento,

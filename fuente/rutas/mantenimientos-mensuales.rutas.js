@@ -1,7 +1,8 @@
 const { Router } = require('express');
-const { param } = require('express-validator');
+const { param, query } = require('express-validator');
 
 const {
+  obtenerMantenimientos,
   obtenerMantenimientosMensuales,
   obtenerMantenimientosEventuales,
   obtenerMantenimiento,
@@ -14,6 +15,17 @@ const generarCadenaValidacionMantenimientos = require('../intermediarios/generar
 const validarCampos = require('../intermediarios/validarCampos');
 
 const router = Router();
+
+router.get(
+  '/',
+  [
+    query('calderaId').optional().isMongoId(),
+    query('tecnicoId').optional().isMongoId(),
+    query('realizado').optional().isBoolean().toBoolean(),
+    validarCampos,
+  ],
+  obtenerMantenimientos
+);
 
 router.get('/mensuales', obtenerMantenimientosMensuales);
 
