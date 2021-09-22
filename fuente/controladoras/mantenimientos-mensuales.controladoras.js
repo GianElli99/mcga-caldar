@@ -253,37 +253,22 @@ const modificarMantenimiento = async (req = request, res = response) => {
   }
 };
 
-const eliminarMantenimiento = (req = request, res = response) => {
+const eliminarMantenimiento = async (req = request, res = response) => {
   try {
-    const mantenimientoId = parseInt(req.params.id);
-    let mantenimientos = listarMantenimientos();
+    const mantenimientoId = req.params.id;
 
-    const mantenimientoAEliminar = mantenimientos.find(
-      (manten) => manten.id === mantenimientoId
+    const mantenimiento = await Mantenimiento.findByIdAndRemove(
+      mantenimientoId
     );
 
-    if (mantenimientoAEliminar) {
-      mantenimientos = mantenimientos.filter(
-        (manten) => manten !== mantenimientoAEliminar
-      );
-      guardarMantenimientos(mantenimientos);
-
-      res.json(mantenimientoAEliminar);
+    if (mantenimiento) {
+      res.json(mantenimiento);
     } else {
-      res.json({});
+      res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
-};
-
-const listarMantenimientos = () => {
-  let datosCrudos = fs.readFileSync(
-    path.resolve(__dirname, '../datos/mantenimientos-mensuales.json')
-  );
-  let mantenimientos = JSON.parse(datosCrudos);
-
-  return mantenimientos;
 };
 
 const guardarMantenimientos = (mantenimientos) => {

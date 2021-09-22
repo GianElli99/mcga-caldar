@@ -55,6 +55,10 @@ router.put(
   modificarMantenimiento
 );
 
-router.delete('/:id', eliminarMantenimiento);
+router.delete(
+  '/:id',
+  [param('id').isMongoId(), validarCampos],
+  eliminarMantenimiento
+);
 
 module.exports = router;

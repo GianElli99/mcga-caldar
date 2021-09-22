@@ -1,5 +1,7 @@
 const { request, response } = require('express');
+const Mantenimiento = require('../modelos/mantenimiento');
 const Tecnico = require('../modelos/tecnico');
+const TiempoReservado = require('../modelos/tiempoReservado');
 
 const obtenerTecnicos = async (req = request, res = response) => {
   try {
@@ -102,6 +104,18 @@ const modificarTecnico = async (req = request, res = response) => {
 const eliminarTecnico = async (req = request, res = response) => {
   try {
     const tecnicoId = req.params.id;
+
+    const poseeMantenimientos = Mantenimiento.findOne({ tecnicoId: tecnicoId });
+    const poseeTiempoReservado = TiempoReservado.findOne({
+      tecnicoId: tecnicoId,
+    });
+
+    if (poseeMantenimientos || poseeTiempoReservado) {
+      return res.status(400).json({
+        error:
+          'No puede eliminar el técnico porque posee mantenimientos o tiempo reservado',
+      });
+    }
 
     const tecnico = await Tecnico.findByIdAndDelete(tecnicoId);
 
