@@ -7,7 +7,8 @@ const Tecnico = require('../modelos/tecnico');
 
 const obtenerMantenimientos = async (req = request, res = response) => {
   try {
-    const { calderaId, tecnicoId, realizado } = req.query;
+    const { calderaId, tecnicoId, realizado, tipo } = req.query;
+
     let condicionesFiltro = {};
     if (tecnicoId) {
       condicionesFiltro.tecnicoId = tecnicoId;
@@ -18,6 +19,9 @@ const obtenerMantenimientos = async (req = request, res = response) => {
     if (realizado === true || realizado === false) {
       condicionesFiltro.realizado = realizado;
     }
+    if (tipo) {
+      condicionesFiltro.tipo = tipo;
+    }
 
     const mantenimientos = await Mantenimiento.find(condicionesFiltro);
 
@@ -27,84 +31,20 @@ const obtenerMantenimientos = async (req = request, res = response) => {
   }
 };
 
-const obtenerMantenimientosMensuales = async (
-  req = request,
-  res = response
-) => {
+const obtenerMantenimiento = async (req = request, res = response) => {
   try {
-    let { calderaId, tecnicoAsignadoId, tipoCaldera } = req.query;
-
-    let mantenimientos = listarMantenimientos();
-    if (calderaId) {
-      calderaId = parseInt(calderaId);
-      mantenimientos = mantenimientos.filter(
-        (manten) => manten.calderaId === calderaId
-      );
-    }
-
-    if (tecnicoAsignadoId) {
-      tecnicoAsignadoId = parseInt(tecnicoAsignadoId);
-      mantenimientos = mantenimientos.filter(
-        (manten) => manten.tecnicoAsignadoId === tecnicoAsignadoId
-      );
-    }
-
-    if (tipoCaldera) {
-      mantenimientos = mantenimientos.filter(
-        (manten) =>
-          manten.tipoCaldera.toLowerCase() === tipoCaldera.toLowerCase()
-      );
-    }
-    res.json(mantenimientos);
-  } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
-  }
-};
-const obtenerMantenimientosEventuales = (req = request, res = response) => {
-  try {
-    let { calderaId, tecnicoAsignadoId, tipoCaldera } = req.query;
-
-    let mantenimientos = listarMantenimientos();
-    if (calderaId) {
-      calderaId = parseInt(calderaId);
-      mantenimientos = mantenimientos.filter(
-        (manten) => manten.calderaId === calderaId
-      );
-    }
-
-    if (tecnicoAsignadoId) {
-      tecnicoAsignadoId = parseInt(tecnicoAsignadoId);
-      mantenimientos = mantenimientos.filter(
-        (manten) => manten.tecnicoAsignadoId === tecnicoAsignadoId
-      );
-    }
-
-    if (tipoCaldera) {
-      mantenimientos = mantenimientos.filter(
-        (manten) =>
-          manten.tipoCaldera.toLowerCase() === tipoCaldera.toLowerCase()
-      );
-    }
-    res.json(mantenimientos);
-  } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
-  }
-};
-
-const obtenerMantenimiento = (req = request, res = response) => {
-  try {
-    const mantenimientoId = parseInt(req.params.id);
-    const mantenimiento = listarMantenimientos().find(
-      (manten) => manten.id === mantenimientoId
-    );
+    const mantenimientoId = req.params.id;
+    const mantenimiento = await Mantenimiento.findById(mantenimientoId)
+      .populate('calderaId')
+      .populate('tecnicoId');
 
     if (mantenimiento) {
       res.json(mantenimiento);
     } else {
-      res.json({});
+      res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
+    res.status(500).json({ error: 'Ha ocurrido un error' });
   }
 };
 const generarMantenimiento = async (req = request, res = response) => {
@@ -169,7 +109,7 @@ const generarMantenimiento = async (req = request, res = response) => {
     }
 
     await mantenimiento.save();
-    res.json(mantenimiento);
+    res.status(201).json(mantenimiento);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -376,8 +316,6 @@ const obtenerIdsTecnicos = (tipoCaldera, tecnicos) => {
 
 module.exports = {
   obtenerMantenimientos,
-  obtenerMantenimientosMensuales,
-  obtenerMantenimientosEventuales,
   obtenerMantenimiento,
   generarMantenimientos,
   generarMantenimiento,
