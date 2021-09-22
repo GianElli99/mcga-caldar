@@ -1,7 +1,5 @@
 const { request, response } = require('express');
 const Mantenimiento = require('../modelos/mantenimiento');
-const fs = require('fs');
-const path = require('path');
 const Caldera = require('../modelos/caldera');
 const Tecnico = require('../modelos/tecnico');
 
@@ -116,63 +114,82 @@ const generarMantenimiento = async (req = request, res = response) => {
   }
 };
 
-const generarMantenimientos = (_req = request, res = response) => {
+const generarMantenimientos = async (_req = request, res = response) => {
   try {
     // foreach caldera instalada generar un mantenimiento mensual
-    const calderas = listarCalderas();
+    const calderas = await Caldera.find({ estaInstalada: true });
+
     let mantenimientos = [];
     for (let i = 0; i < calderas.length; i++) {
-      let mantenimiento = {
-        id: Math.round(Math.random() * 10000),
-        numeroMes: new Date().getMonth() + 1,
-        hecho: false,
-        calderaId: calderas[i].id,
-        tecnicoAsignadoId: null,
-        minutosNecesarios: 300,
-        tipoCaldera: calderas[i].descripcion,
-      };
+      const mantenimiento = new Mantenimiento({
+        tipo: 'Mensual',
+        realizado: false,
+        fecha: Date.now(),
+        calderaId: calderas[i]._id,
+      });
       mantenimientos.push(mantenimiento);
     }
-    //conseguir los tecnicos que solo saben reparar un tipo de caldera
-    //falta contemplar horas de trabajo
-    const tecnicos = listarTecnicos();
-    let tecnicosExclusivos = {
-      A: obtenerIdsTecnicosExclusivos('A', tecnicos),
-      B: obtenerIdsTecnicosExclusivos('B', tecnicos),
-      C: obtenerIdsTecnicosExclusivos('C', tecnicos),
-      D: obtenerIdsTecnicosExclusivos('D', tecnicos),
+
+    const tecnicos = await Tecnico.find({});
+
+    let tecnicosDeUnaEspecializacion = {
+      A: tecnicos.filter(
+        (tec) =>
+          tec.especializaciones.includes('A') &&
+          tec.especializaciones.length === 1
+      ),
+      B: tecnicos.filter(
+        (tec) =>
+          tec.especializaciones.includes('B') &&
+          tec.especializaciones.length === 1
+      ),
+      C: tecnicos.filter(
+        (tec) =>
+          tec.especializaciones.includes('C') &&
+          tec.especializaciones.length === 1
+      ),
+      D: tecnicos.filter(
+        (tec) =>
+          tec.especializaciones.includes('D') &&
+          tec.especializaciones.length === 1
+      ),
     };
 
     for (let i = 0; i < mantenimientos.length; i++) {
-      let { tipoCaldera } = mantenimientos[i];
-      if (tecnicosExclusivos[tipoCaldera].length > 0) {
-        mantenimientos[i].tecnicoAsignadoId =
-          tecnicosExclusivos[tipoCaldera][0];
-        tecnicosExclusivos[tipoCaldera].push(
-          tecnicosExclusivos[tipoCaldera].shift()
+      const { tipo } = calderas.find(
+        (caldera) => caldera._id === mantenimientos[i].calderaId
+      );
+      if (tecnicosDeUnaEspecializacion[tipo].length > 0) {
+        mantenimientos[i].tecnicoId = tecnicosDeUnaEspecializacion[tipo][0]._id;
+        tecnicosDeUnaEspecializacion[tipo].push(
+          tecnicosDeUnaEspecializacion[tipo].shift()
         );
       }
     }
-    let tecnicosFlexibles = {
-      A: obtenerIdsTecnicos('A', tecnicos),
-      B: obtenerIdsTecnicos('B', tecnicos),
-      C: obtenerIdsTecnicos('C', tecnicos),
-      D: obtenerIdsTecnicos('D', tecnicos),
+
+    let tecnicosPorEspecializacion = {
+      A: tecnicos.filter((tec) => tec.especializaciones.includes('A')),
+      B: tecnicos.filter((tec) => tec.especializaciones.includes('B')),
+      C: tecnicos.filter((tec) => tec.especializaciones.includes('C')),
+      D: tecnicos.filter((tec) => tec.especializaciones.includes('D')),
     };
+
     for (let i = 0; i < mantenimientos.length; i++) {
-      let { tipoCaldera } = mantenimientos[i];
-      if (!mantenimientos[i].tecnicoAsignadoId) {
-        mantenimientos[i].tecnicoAsignadoId = tecnicosFlexibles[tipoCaldera][0];
-        tecnicosFlexibles[tipoCaldera].push(
-          tecnicosFlexibles[tipoCaldera].shift()
+      const { tipo } = calderas.find(
+        (caldera) => caldera._id === mantenimientos[i].calderaId
+      );
+      if (
+        tecnicosPorEspecializacion[tipo].length > 0 &&
+        !mantenimientos[i].tecnicoId
+      ) {
+        mantenimientos[i].tecnicoId = tecnicosPorEspecializacion[tipo][0]._id;
+        tecnicosPorEspecializacion[tipo].push(
+          tecnicosPorEspecializacion[tipo].shift()
         );
       }
     }
 
-    guardarMantenimientos(mantenimientos);
-    res.json(mantenimientos);
-
-    // asignar un tecnico a cada mantenimiento mensual
+    return res.json(mantenimientos);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -269,54 +286,6 @@ const eliminarMantenimiento = async (req = request, res = response) => {
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
-};
-
-const guardarMantenimientos = (mantenimientos) => {
-  fs.writeFileSync(
-    path.resolve(__dirname, '../datos/mantenimientos-mensuales.json'),
-    JSON.stringify(mantenimientos, null, 2)
-  );
-};
-
-const listarCalderas = () => {
-  let calderasJson = fs.readFileSync(
-    path.resolve(__dirname, '../datos/calderas.json')
-  );
-  return JSON.parse(calderasJson);
-};
-
-const listarTecnicos = () => {
-  let datosCrudos = fs.readFileSync(
-    path.resolve(__dirname, '../datos/tecnicos.json')
-  );
-  let tecnicos = JSON.parse(datosCrudos);
-
-  return tecnicos;
-};
-
-const obtenerIdsTecnicosExclusivos = (tipoCaldera, tecnicos) => {
-  let tecnicosExclusivosIds = [];
-  for (let i = 0; i < tecnicos.length; i++) {
-    if (
-      tecnicos[i].especializacion.length === 1 &&
-      tecnicos[i].especializacion[0] === tipoCaldera
-    ) {
-      tecnicosExclusivosIds.push(tecnicos[i].id);
-    }
-  }
-  return tecnicosExclusivosIds;
-};
-
-const obtenerIdsTecnicos = (tipoCaldera, tecnicos) => {
-  let tecnicosIds = [];
-  for (let i = 0; i < tecnicos.length; i++) {
-    for (let j = 0; j < tecnicos[i].especializacion.length; j++) {
-      if (tecnicos[i].especializacion[j] === tipoCaldera) {
-        tecnicosIds.push(tecnicos[i].id);
-      }
-    }
-  }
-  return tecnicosIds;
 };
 
 module.exports = {
