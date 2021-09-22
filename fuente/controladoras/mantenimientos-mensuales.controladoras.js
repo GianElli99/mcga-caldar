@@ -2,6 +2,7 @@ const { request, response } = require('express');
 const Mantenimiento = require('../modelos/mantenimiento');
 const Caldera = require('../modelos/caldera');
 const Tecnico = require('../modelos/tecnico');
+const TiempoReservado = require('../modelos/tiempoReservado');
 
 const obtenerMantenimientos = async (req = request, res = response) => {
   try {
@@ -189,7 +190,63 @@ const generarMantenimientos = async (_req = request, res = response) => {
       }
     }
 
-    return res.json(mantenimientos);
+    let tiempoMantEventualPorTipoCaldera = {
+      A: 0,
+      B: 0,
+      C: 0,
+      D: 0,
+    };
+    for (let i = 0; i < calderas.length; i++) {
+      tiempoMantEventualPorTipoCaldera[calderas[i].tipo] +=
+        calderas[i].tiempoMantenimientoMinutos;
+    }
+    tiempoMantEventualPorTipoCaldera.A *= 0.2;
+    tiempoMantEventualPorTipoCaldera.B *= 0.2;
+    tiempoMantEventualPorTipoCaldera.C *= 0.2;
+    tiempoMantEventualPorTipoCaldera.D *= 0.2;
+
+    const bloqueTiempoReservadoMinutos = 20;
+    let tiemposReservados = [];
+    while (tiempoMantEventualPorTipoCaldera.A > 0) {
+      if (tecnicosPorEspecializacion.A.length === 0) {
+        break;
+      }
+      let tReservado = null;
+      let tReservadoExistente = tiemposReservados.find(
+        (x) => x.tecnicoId === tecnicosPorEspecializacion.A[0]._id
+      );
+      if (tReservadoExistente) {
+        tReservado = tReservadoExistente;
+      } else {
+        tReservado = new TiempoReservado({
+          minutosReservados: 0,
+          minutosUsados: 0,
+          tipoCaldera: 'A',
+          fecha: Date.now(),
+        });
+      }
+      if (tiempoMantEventualPorTipoCaldera.A > bloqueTiempoReservadoMinutos) {
+        tReservado.minutosReservados += bloqueTiempoReservadoMinutos;
+        tiempoMantEventualPorTipoCaldera.A -= bloqueTiempoReservadoMinutos;
+      } else {
+        tReservado.minutosReservados += tiempoMantEventualPorTipoCaldera.A;
+        tiempoMantEventualPorTipoCaldera.A = 0;
+      }
+      if (tecnicosPorEspecializacion.A.length > 0 && !tReservadoExistente) {
+        tReservado.tecnicoId = tecnicosPorEspecializacion.A[0]._id;
+      }
+
+      tecnicosPorEspecializacion.A.push(tecnicosPorEspecializacion.A.shift());
+
+      if (!tReservadoExistente) {
+        tiemposReservados.push(tReservado);
+      }
+    }
+
+    return res.json({
+      mantenimientos,
+      reservasParaEventuales: tiemposReservados,
+    });
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
