@@ -2,8 +2,8 @@ const { request, response } = require('express');
 const Mantenimiento = require('../modelos/mantenimiento');
 const fs = require('fs');
 const path = require('path');
-// const Caldera = require('../modelos/caldera');
-// const Tecnico = require('../modelos/tecnico');
+const Caldera = require('../modelos/caldera');
+const Tecnico = require('../modelos/tecnico');
 
 const obtenerMantenimientosMensuales = (req = request, res = response) => {
   try {
@@ -84,7 +84,7 @@ const obtenerMantenimiento = (req = request, res = response) => {
 };
 const generarMantenimiento = async (req = request, res = response) => {
   try {
-    // let esTecnicoValido = true;
+    let esTecnicoValido = true;
     const mantenimiento = new Mantenimiento(req.body);
     mantenimiento.fecha = Date.now();
 
@@ -92,13 +92,20 @@ const generarMantenimiento = async (req = request, res = response) => {
       mantenimiento.descripcion = undefined;
       mantenimiento.tiempoMinutos = undefined;
     }
-    // const esCalderaValida = Caldera.findById(mantenimiento.calderaId);
-    // if (mantenimiento.tecnicoId) {
-    //   esTecnicoValido = Tecnico.findById(mantenimiento.tecnicoId);
-    // }
 
-    await mantenimiento.save();
-    res.json(mantenimiento);
+    const esCalderaValida = await Caldera.findById(mantenimiento.calderaId);
+    if (mantenimiento.tecnicoId) {
+      esTecnicoValido = await Tecnico.findById(mantenimiento.tecnicoId);
+    }
+
+    if (esCalderaValida && esTecnicoValido) {
+      await mantenimiento.save();
+      res.json(mantenimiento);
+    } else {
+      res.status(400).json({
+        error: 'No se puede añadir este manteniminiento',
+      });
+    }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
