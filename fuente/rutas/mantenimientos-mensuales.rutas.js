@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const { param } = require('express-validator');
 
 const {
   obtenerMantenimientosMensuales,
@@ -28,7 +29,15 @@ router.post(
   generarMantenimiento
 );
 
-router.put('/:id', modificarMantenimiento);
+router.put(
+  '/:id',
+  [
+    param('id').isMongoId(),
+    ...generarCadenaValidacionMantenimientos(),
+    validarCampos,
+  ],
+  modificarMantenimiento
+);
 
 router.delete('/:id', eliminarMantenimiento);
 

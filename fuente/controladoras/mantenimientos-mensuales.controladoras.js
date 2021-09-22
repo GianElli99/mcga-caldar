@@ -85,12 +85,14 @@ const obtenerMantenimiento = (req = request, res = response) => {
 const generarMantenimiento = async (req = request, res = response) => {
   try {
     let esTecnicoValido = true;
-    const mantenimiento = new Mantenimiento(req.body);
-    mantenimiento.fecha = Date.now();
+    let mantenimiento = new Mantenimiento(req.body);
 
     if (mantenimiento.tipo === 'Mensual') {
       mantenimiento.descripcion = undefined;
       mantenimiento.tiempoMinutos = undefined;
+    }
+    if (!mantenimiento.realizado) {
+      mantenimiento.fechaRealizado = undefined;
     }
 
     const esCalderaValida = await Caldera.findById(mantenimiento.calderaId);
@@ -98,7 +100,26 @@ const generarMantenimiento = async (req = request, res = response) => {
       esTecnicoValido = await Tecnico.findById(mantenimiento.tecnicoId);
     }
 
-    if (esCalderaValida && esTecnicoValido) {
+    const primerDiaMes = new Date(
+      mantenimiento.fecha.getUTCFullYear(),
+      mantenimiento.fecha.getUTCMonth(),
+      1
+    );
+    const ultimoDiaMes = new Date(
+      mantenimiento.fecha.getUTCFullYear(),
+      mantenimiento.fecha.getUTCMonth() + 1,
+      0
+    );
+    const existeMantenMensualEnMismoMes = await Mantenimiento.findOne({
+      calderaId: mantenimiento.calderaId,
+      fecha: {
+        $gte: primerDiaMes,
+        $lt: ultimoDiaMes,
+      },
+      tipo: 'Mensual',
+    });
+
+    if (esCalderaValida && esTecnicoValido && !existeMantenMensualEnMismoMes) {
       await mantenimiento.save();
       res.json(mantenimiento);
     } else {
@@ -173,42 +194,56 @@ const generarMantenimientos = (_req = request, res = response) => {
   }
 };
 
-const modificarMantenimiento = (req = request, res = response) => {
+const modificarMantenimiento = async (req = request, res = response) => {
   try {
-    const id = parseInt(req.params.id);
+    const mantenimientoId = req.params.id;
+    let esTecnicoValido = true;
+    let mantenimiento = req.body;
 
-    const {
-      numeroMes = 0,
-      hecho = false,
-      calderaId = null,
-      tecnicoAsignadoId = null,
-      minutosNecesarios = null,
-      tipoCaldera = '',
-    } = req.body;
-
-    const mantenimientoModificado = {
-      id,
-      hecho,
-      numeroMes,
-      calderaId,
-      tecnicoAsignadoId,
-      minutosNecesarios,
-      tipoCaldera,
-    }; //TODO: necesita refactorizacion
-    let mantenimientos = listarMantenimientos();
-    let modificacionRealizada = false;
-    for (let i = 0; i < mantenimientos.length; i++) {
-      if (mantenimientoModificado.id === mantenimientos[i].id) {
-        mantenimientos[i] = mantenimientoModificado;
-        modificacionRealizada = true;
-        break;
-      }
+    if (mantenimiento.tipo === 'Mensual') {
+      mantenimiento.descripcion = undefined;
+      mantenimiento.tiempoMinutos = undefined;
     }
-    if (modificacionRealizada) {
-      guardarMantenimientos(mantenimientos);
-      res.json(mantenimientoModificado);
+    if (!mantenimiento.realizado) {
+      mantenimiento.fechaRealizado = undefined;
+    }
+
+    const esCalderaValida = await Caldera.findById(mantenimiento.calderaId);
+    if (mantenimiento.tecnicoId) {
+      esTecnicoValido = await Tecnico.findById(mantenimiento.tecnicoId);
+    }
+
+    const primerDiaMes = new Date(
+      mantenimiento.fecha.getUTCFullYear(),
+      mantenimiento.fecha.getUTCMonth(),
+      1
+    );
+    const ultimoDiaMes = new Date(
+      mantenimiento.fecha.getUTCFullYear(),
+      mantenimiento.fecha.getUTCMonth() + 1,
+      0
+    );
+    const existeMantenMensualEnMismoMes = await Mantenimiento.findOne({
+      calderaId: mantenimiento.calderaId,
+      fecha: {
+        $gte: primerDiaMes,
+        $lt: ultimoDiaMes,
+      },
+      tipo: 'Mensual',
+      _id: { $ne: mantenimientoId },
+    });
+
+    if (esCalderaValida && esTecnicoValido && !existeMantenMensualEnMismoMes) {
+      mantenimiento = await Mantenimiento.findByIdAndUpdate(
+        mantenimientoId,
+        mantenimiento,
+        { new: true }
+      );
+      res.json(mantenimiento);
     } else {
-      res.json({});
+      res.status(400).json({
+        error: 'No se puede modificar este manteniminiento',
+      });
     }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });

@@ -10,10 +10,16 @@ const generarCadenaValidacionMantenimientos = () => {
         body('tiempoMinutos').isNumeric().toInt(),
       ],
     ]),
-    body('realizado').isBoolean().toBoolean(),
-    body('fechaRealizado').optional().isDate(),
+    oneOf([
+      [
+        body('realizado').equals('true').toBoolean(),
+        body('fechaRealizado').isDate(),
+      ],
+      [body('realizado').equals('false').toBoolean()],
+    ]),
+    body('fecha').isDate(),
     body('calderaId').isMongoId(),
-    body('tecnicoId').isMongoId(),
+    body('tecnicoId').optional().isMongoId(),
   ];
 };
 
