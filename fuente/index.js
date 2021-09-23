@@ -19,10 +19,11 @@ app.use('/tecnicos', routerTecnicos);
 app.use('/calderas', routerCalderas);
 app.use('/edificios', routerEdificios);
 app.use('/constructoras', routerConstructoras);
-app.use('/mantenimientos/mensuales', routerMantenimientosMensuales);
+app.use('/mantenimientos', routerMantenimientosMensuales);
 app.use('/clientes', routerClientes);
 
 app.listen(port, async () => {
+  // eslint-disable-next-line no-console
   console.log(`Servidor corriendo en http://localhost:${port}`);
   await conectarBD();
 });
