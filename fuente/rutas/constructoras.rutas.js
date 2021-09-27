@@ -19,7 +19,6 @@ router.get(
     query('nombre').isString().trim(),
     query('cuit').isString().trim(),
     query('telefono').isString().trim(),
-    validarCampos,
   ],
   obtenerConstructoras
 );

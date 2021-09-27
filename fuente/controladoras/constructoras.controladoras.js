@@ -8,13 +8,16 @@ const obtenerConstructoras = async (req = request, res = response) => {
 
     let condicionesConstructora = {};
     if (nombre) {
-      condicionesConstructora.nombre = nombre;
+      const regex = new RegExp(nombre, 'i');
+      condicionesConstructora.nombre = { $regex: regex };
     }
     if (cuit) {
-      condicionesConstructora.cuit = cuit;
+      const regex = new RegExp(cuit, 'i');
+      condicionesConstructora.cuit = { $regex: regex };
     }
     if (telefono) {
-      condicionesConstructora.telefono = telefono;
+      const regex = new RegExp(telefono, 'i');
+      condicionesConstructora.telefono = { $regex: regex };
     }
 
     const constructoras = await Constructora.find(condicionesConstructora);
@@ -47,13 +50,13 @@ const obtenerEdificios = async (req = request, res = response) => {
       constructoraId
     );
 
-    let edificios = await Edificio.find(constructoraSeleccionada);
-
-    if (edificios) {
-      res.json(edificios.nombre + edificios.direccion);
-    } else {
-      res.json({});
+    if (!constructoraSeleccionada) {
+      return res.status(400).json({ error: 'La constructora no existe' });
     }
+
+    let edificios = await Edificio.find({ constructoraId: constructoraId });
+
+    res.json(edificios);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
@@ -62,7 +65,7 @@ const obtenerEdificios = async (req = request, res = response) => {
 const agregarConstructora = async (req = request, res = response) => {
   try {
     const constructora = new Constructora(req.body);
-
+    // validar cuit unico
     await constructora.save();
     res.status(201).json(constructora);
   } catch (error) {
@@ -73,7 +76,7 @@ const agregarConstructora = async (req = request, res = response) => {
 const modificarConstructora = async (req = request, res = response) => {
   try {
     const constructoraId = req.params.id;
-
+    // validar cuit unico
     const constructora = await Constructora.findByIdAndUpdate(
       constructoraId,
       req.body,
