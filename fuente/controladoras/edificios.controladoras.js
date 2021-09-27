@@ -7,11 +7,12 @@ const obtenerEdificios = async (req = request, res = response) => {
     const { esParticular, direccion, constructoraId } = req.query;
 
     let condicionesFiltro = {};
-    if (esParticular == true || esParticular == false) {
+    if (esParticular === true || esParticular === false) {
       condicionesFiltro.esParticular = esParticular;
     }
     if (direccion) {
-      condicionesFiltro.direccion = direccion;
+      const regex = new RegExp(direccion, 'i');
+      condicionesFiltro.direccion = { $regex: regex };
     }
     if (constructoraId) {
       condicionesFiltro.constructoraId = constructoraId;
@@ -49,6 +50,9 @@ const agregarEdificio = async (req = request, res = response) => {
       ciudad: req.body.ciudad,
       codigoPostal: req.body.codigoPostal,
     });
+    if (edificio.esParticular) {
+      edificio.constructoraId = undefined;
+    }
 
     if (existeEdificio) {
       res.status(400).json({
@@ -66,7 +70,7 @@ const agregarEdificio = async (req = request, res = response) => {
 const modificarEdificio = async (req = request, res = response) => {
   try {
     const edificioId = req.params.id;
-    let edificio;
+    let edificio = req.body;
 
     const existeEdificio = await Edificio.findOne({
       direccion: req.body.direccion,
@@ -74,13 +78,16 @@ const modificarEdificio = async (req = request, res = response) => {
       codigoPostal: req.body.codigoPostal,
       _id: { $ne: edificioId },
     });
+    if (edificio.esParticular) {
+      edificio.constructoraId = undefined;
+    }
 
     if (existeEdificio) {
       return res.status(400).json({
         error: 'Ya existe un edificio en esa direccion, ciudad y codigo postal',
       });
     } else {
-      edificio = await Edificio.findByIdAndUpdate(edificioId, req.body, {
+      edificio = await Edificio.findByIdAndUpdate(edificioId, edificio, {
         new: true,
       });
     }
@@ -114,7 +121,6 @@ const eliminarEdificio = async (req = request, res = response) => {
       res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };

@@ -15,6 +15,7 @@ const router = Router();
 router.get(
   '/',
   [
+    query('constructoraId').optional().isMongoId(),
     query('ciudad').optional().trim().notEmpty(),
     query('esParticular').optional().toBoolean(),
     validarCampos,
