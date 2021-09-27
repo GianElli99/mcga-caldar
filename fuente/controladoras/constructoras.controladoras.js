@@ -65,7 +65,15 @@ const obtenerEdificios = async (req = request, res = response) => {
 const agregarConstructora = async (req = request, res = response) => {
   try {
     const constructora = new Constructora(req.body);
-    // validar cuit unico
+    const existeConstructora = await Constructora.findOne({
+      cuit: req.body.cuit,
+    });
+
+    if (existeConstructora) {
+      return res
+        .status(400)
+        .json({ error: 'Ya existe una constructora con este cuit' });
+    }
     await constructora.save();
     res.status(201).json(constructora);
   } catch (error) {
@@ -76,7 +84,16 @@ const agregarConstructora = async (req = request, res = response) => {
 const modificarConstructora = async (req = request, res = response) => {
   try {
     const constructoraId = req.params.id;
-    // validar cuit unico
+    const existeConstructora = await Constructora.findOne({
+      cuit: req.body.cuit,
+      _id: { $ne: constructoraId },
+    });
+
+    if (existeConstructora) {
+      return res
+        .status(400)
+        .json({ error: 'Ya existe una constructora con este cuit' });
+    }
     const constructora = await Constructora.findByIdAndUpdate(
       constructoraId,
       req.body,
