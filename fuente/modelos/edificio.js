@@ -15,11 +15,11 @@ const EdificioSchema = Schema({
   },
   codigoPostal: {
     type: String,
-    required: [true, 'El campo codigoPostal es obligatorio'],
+    required: [true, 'El campo codigo postal es obligatorio'],
   },
   esParticular: {
     type: Boolean,
-    required: [true, 'El campo esParticular es obligatorio'],
+    required: [true, 'El campo es particular es obligatorio'],
   },
   constructoraId: {
     type: Schema.Types.ObjectId,
