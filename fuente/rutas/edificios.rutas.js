@@ -14,7 +14,11 @@ const router = Router();
 
 router.get(
   '/',
-  [query('ciudad').trim(), query('es_particular').toBoolean(), validarCampos],
+  [
+    query('ciudad').optional().trim().notEmpty(),
+    query('esParticular').optional().toBoolean(),
+    validarCampos,
+  ],
   obtenerEdificios
 );
 

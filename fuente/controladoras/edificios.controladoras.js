@@ -1,36 +1,34 @@
 const { request, response } = require('express');
 const Edificio = require('../modelos/edificio');
+const Caldera = require('../modelos/caldera');
 
-const obtenerEdificios = (req = request, res = response) => {
+const obtenerEdificios = async (req = request, res = response) => {
   try {
-    const { es_particular, ciudad } = req.query;
+    const { esParticular, direccion, constructoraId } = req.query;
 
-    if (
-      es_particular &&
-      (es_particular === 'true' || es_particular === 'false')
-    ) {
-      let particularBooleano = es_particular === 'true';
-      Edificio = Edificio.filter(
-        (edif) => edif.es_particular === particularBooleano
-      );
+    let condicionesFiltro = {};
+    if (esParticular == true || esParticular == false) {
+      condicionesFiltro.esParticular = esParticular;
+    }
+    if (direccion) {
+      condicionesFiltro.direccion = direccion;
+    }
+    if (constructoraId) {
+      condicionesFiltro.constructoraId = constructoraId;
     }
 
-    if (ciudad) {
-      Edificio = Edificio.filter((edif) =>
-        edif.ciudad.toLowerCase().includes(ciudad.toLowerCase())
-      );
-    }
+    const edificios = await Edificio.find(condicionesFiltro);
 
-    res.send(Edificio);
+    res.json(edificios);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
 
-const obtenerEdificio = (req = request, res = response) => {
+const obtenerEdificio = async (req = request, res = response) => {
   try {
-    const edificioId = parseInt(req.params.id);
-    const edificio = Edificio.find((edificio) => edificio.id === edificioId);
+    const edificioId = req.params.id;
+    const edificio = await Edificio.findById(edificioId);
 
     if (edificio) {
       res.json(edificio);
@@ -38,18 +36,18 @@ const obtenerEdificio = (req = request, res = response) => {
       res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
+    res.status(500).json({ error: 'Ha ocurrido un error' });
   }
 };
 
 const agregarEdificio = async (req = request, res = response) => {
   try {
-    const Edificio = new Edificio(req.body);
+    const edificio = new Edificio(req.body);
 
     const existeEdificio = await Edificio.findOne({
       direccion: req.body.direccion,
       ciudad: req.body.ciudad,
-      codigo_postal: req.body.codigo_postal,
+      codigoPostal: req.body.codigoPostal,
     });
 
     if (existeEdificio) {
@@ -57,8 +55,8 @@ const agregarEdificio = async (req = request, res = response) => {
         error: 'Ya existe un edificio en esa direccion, ciudad y codigo postal',
       });
     } else {
-      await Edificio.save();
-      res.status(201).json(Edificio);
+      await edificio.save();
+      res.status(201).json(edificio);
     }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
@@ -68,11 +66,24 @@ const agregarEdificio = async (req = request, res = response) => {
 const modificarEdificio = async (req = request, res = response) => {
   try {
     const edificioId = req.params.id;
+    let edificio;
 
-    const edificio = await Edificio.findByIdAndUpdate(edificioId, req.body, {
-      new: true,
+    const existeEdificio = await Edificio.findOne({
+      direccion: req.body.direccion,
+      ciudad: req.body.ciudad,
+      codigoPostal: req.body.codigoPostal,
+      _id: { $ne: edificioId },
     });
 
+    if (existeEdificio) {
+      return res.status(400).json({
+        error: 'Ya existe un edificio en esa direccion, ciudad y codigo postal',
+      });
+    } else {
+      edificio = await Edificio.findByIdAndUpdate(edificioId, req.body, {
+        new: true,
+      });
+    }
     if (edificio) {
       res.json(edificio);
     } else {
@@ -87,14 +98,23 @@ const eliminarEdificio = async (req = request, res = response) => {
   try {
     const edificioId = req.params.id;
 
+    const poseeCaldera = await Caldera.findOne({ edificioId: edificioId });
+
+    if (poseeCaldera) {
+      return res.status(400).json({
+        error: 'No puede eliminar el edificio porque posee una caldera',
+      });
+    }
+
     const edificio = await Edificio.findByIdAndDelete(edificioId);
 
     if (edificio) {
-      res.json(Edificio);
+      res.json(edificio);
     } else {
       res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
