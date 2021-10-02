@@ -42,7 +42,7 @@
     "node": "14.17.6"
   },
   "lint-staged": {
-    "*.js": "eslint --cache --fix",
-    "*.{js,css,md}": "prettier --write"
+    "*.js": "eslint --fix",
+    "*.{js,json,css,md}": "prettier --write"
   }
 }
