@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { param, query } = require('express-validator');
+const { param, query, body } = require('express-validator');
 
 const {
   obtenerMantenimientos,
@@ -37,7 +37,15 @@ router.get(
   obtenerMantenimiento
 );
 
-router.post('/automatico', generarMantenimientos);
+router.post(
+  '/automatico',
+  [
+    body('fecha').isDate(),
+    body('bloqueMantenimientoEventualMinutos').isNumeric().toInt(),
+    validarCampos,
+  ],
+  generarMantenimientos
+);
 
 router.post(
   '/',

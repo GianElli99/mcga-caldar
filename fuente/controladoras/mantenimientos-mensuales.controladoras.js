@@ -115,9 +115,17 @@ const generarMantenimiento = async (req = request, res = response) => {
   }
 };
 
-const generarMantenimientos = async (_req = request, res = response) => {
+const generarMantenimientos = async (req = request, res = response) => {
   try {
-    // foreach caldera instalada generar un mantenimiento mensual
+    const { fecha, bloqueMantenimientoEventualMinutos } = req.body;
+
+    if (bloqueMantenimientoEventualMinutos <= 0) {
+      return res.status(400).json({
+        error:
+          'El bloque de tiempo para mantenimientos eventuales debe ser mayor a 0.',
+      });
+    }
+
     const calderas = await Caldera.find({ estaInstalada: true });
 
     let mantenimientos = [];
@@ -125,7 +133,7 @@ const generarMantenimientos = async (_req = request, res = response) => {
       const mantenimiento = new Mantenimiento({
         tipo: 'Mensual',
         realizado: false,
-        fecha: Date.now(),
+        fecha: new Date(fecha),
         calderaId: calderas[i]._id,
       });
       mantenimientos.push(mantenimiento);
@@ -162,6 +170,7 @@ const generarMantenimientos = async (_req = request, res = response) => {
       );
       if (tecnicosDeUnaEspecializacion[tipo].length > 0) {
         mantenimientos[i].tecnicoId = tecnicosDeUnaEspecializacion[tipo][0]._id;
+
         tecnicosDeUnaEspecializacion[tipo].push(
           tecnicosDeUnaEspecializacion[tipo].shift()
         );
@@ -205,41 +214,46 @@ const generarMantenimientos = async (_req = request, res = response) => {
     tiempoMantEventualPorTipoCaldera.C *= 0.2;
     tiempoMantEventualPorTipoCaldera.D *= 0.2;
 
-    const bloqueTiempoReservadoMinutos = 20;
     let tiemposReservados = [];
-    while (tiempoMantEventualPorTipoCaldera.A > 0) {
-      if (tecnicosPorEspecializacion.A.length === 0) {
-        break;
-      }
-      let tReservado = null;
-      let tReservadoExistente = tiemposReservados.find(
-        (x) => x.tecnicoId === tecnicosPorEspecializacion.A[0]._id
-      );
-      if (tReservadoExistente) {
-        tReservado = tReservadoExistente;
-      } else {
-        tReservado = new TiempoReservado({
-          minutosReservados: 0,
-          minutosUsados: 0,
-          tipoCaldera: 'A',
-          fecha: Date.now(),
-        });
-      }
-      if (tiempoMantEventualPorTipoCaldera.A > bloqueTiempoReservadoMinutos) {
-        tReservado.minutosReservados += bloqueTiempoReservadoMinutos;
-        tiempoMantEventualPorTipoCaldera.A -= bloqueTiempoReservadoMinutos;
-      } else {
-        tReservado.minutosReservados += tiempoMantEventualPorTipoCaldera.A;
-        tiempoMantEventualPorTipoCaldera.A = 0;
-      }
-      if (tecnicosPorEspecializacion.A.length > 0 && !tReservadoExistente) {
-        tReservado.tecnicoId = tecnicosPorEspecializacion.A[0]._id;
-      }
+    for (const key in tiempoMantEventualPorTipoCaldera) {
+      while (tiempoMantEventualPorTipoCaldera[key] > 0) {
+        if (tecnicosPorEspecializacion[key].length === 0) {
+          break;
+        }
+        let tReservado = null;
+        let tReservadoExistente = tiemposReservados.find(
+          (x) =>
+            x.tecnicoId === tecnicosPorEspecializacion[key][0]._id &&
+            x.tipoCaldera === key
+        );
+        if (tReservadoExistente) {
+          tReservado = tReservadoExistente;
+        } else {
+          tReservado = new TiempoReservado({
+            minutosReservados: 0,
+            minutosUsados: 0,
+            tipoCaldera: key,
+            fecha: new Date(fecha),
+            tecnicoId: tecnicosPorEspecializacion[key][0]._id,
+          });
+          tiemposReservados.push(tReservado);
+        }
 
-      tecnicosPorEspecializacion.A.push(tecnicosPorEspecializacion.A.shift());
+        if (
+          tiempoMantEventualPorTipoCaldera[key] >
+          bloqueMantenimientoEventualMinutos
+        ) {
+          tReservado.minutosReservados += bloqueMantenimientoEventualMinutos;
+          tiempoMantEventualPorTipoCaldera[key] -=
+            bloqueMantenimientoEventualMinutos;
+        } else {
+          tReservado.minutosReservados += tiempoMantEventualPorTipoCaldera[key];
+          tiempoMantEventualPorTipoCaldera[key] = 0;
+        }
 
-      if (!tReservadoExistente) {
-        tiemposReservados.push(tReservado);
+        tecnicosPorEspecializacion[key].push(
+          tecnicosPorEspecializacion[key].shift()
+        );
       }
     }
 
