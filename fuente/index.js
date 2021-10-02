@@ -10,7 +10,7 @@ const routerClientes = require('./rutas/clientes.rutas');
 require('dotenv').config();
 const { conectarBD } = require('./basededatos/configuracion');
 
-const port = process.env.PORT || 8090;
+const port = process.env.PORT;
 const app = express();
 
 app.use(json());
