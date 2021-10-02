@@ -1,158 +1,128 @@
 const { request, response } = require('express');
-const fs = require('fs');
-const path = require('path');
+const Edificio = require('../modelos/edificio');
+const Caldera = require('../modelos/caldera');
 
-const obtenerEdificios = (req = request, res = response) => {
+const obtenerEdificios = async (req = request, res = response) => {
   try {
-    const { es_particular, ciudad } = req.query;
+    const { esParticular, direccion, constructoraId } = req.query;
 
-    let edificios = listarEdificios();
-
-    if (
-      es_particular &&
-      (es_particular === 'true' || es_particular === 'false')
-    ) {
-      let particularBooleano = es_particular === 'true';
-      edificios = edificios.filter(
-        (edif) => edif.es_particular === particularBooleano
-      );
+    let condicionesFiltro = {};
+    if (esParticular === true || esParticular === false) {
+      condicionesFiltro.esParticular = esParticular;
+    }
+    if (direccion) {
+      const regex = new RegExp(direccion, 'i');
+      condicionesFiltro.direccion = { $regex: regex };
+    }
+    if (constructoraId) {
+      condicionesFiltro.constructoraId = constructoraId;
     }
 
-    if (ciudad) {
-      edificios = edificios.filter((edif) =>
-        edif.ciudad.toLowerCase().includes(ciudad.toLowerCase())
-      );
-    }
+    const edificios = await Edificio.find(condicionesFiltro);
 
-    res.send(edificios);
+    res.json(edificios);
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
 
-const obtenerEdificio = (req = request, res = response) => {
+const obtenerEdificio = async (req = request, res = response) => {
   try {
-    const edificioId = parseInt(req.params.id);
-    const edificio = listarEdificios().find(
-      (edificio) => edificio.id === edificioId
-    );
+    const edificioId = req.params.id;
+    const edificio = await Edificio.findById(edificioId);
 
     if (edificio) {
       res.json(edificio);
     } else {
-      res.json({});
+      res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
+    res.status(500).json({ error: 'Ha ocurrido un error' });
   }
 };
 
-const agregarEdificio = (req = request, res = response) => {
+const agregarEdificio = async (req = request, res = response) => {
   try {
-    const {
-      direccion = '',
-      ciudad = '',
-      codigo_postal = '',
-      es_particular = true,
-      contacto = '',
-    } = req.body;
-    const id = Math.round(Math.random() * 1000);
+    const edificio = new Edificio(req.body);
 
-    const nuevoEdificio = {
-      id,
-      direccion,
-      ciudad,
-      codigo_postal,
-      es_particular,
-      contacto,
-    }; //TODO: necesita refactorizacion, crear clase edificio
-    const edificios = listarEdificios();
-    edificios.push(nuevoEdificio);
-    guardarEdificios(edificios);
+    const existeEdificio = await Edificio.findOne({
+      direccion: req.body.direccion,
+      ciudad: req.body.ciudad,
+      codigoPostal: req.body.codigoPostal,
+    });
+    if (edificio.esParticular) {
+      edificio.constructoraId = undefined;
+    }
 
-    res.json(nuevoEdificio);
-  } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
-  }
-};
-
-const eliminarEdificio = (req = request, res = response) => {
-  try {
-    const edificioId = parseInt(req.params.id);
-    let edificios = listarEdificios();
-
-    const edificioAEliminar = edificios.find(
-      (edificio) => edificio.id === edificioId
-    );
-
-    if (edificioAEliminar) {
-      edificios = edificios.filter(
-        (edificio) => edificio !== edificioAEliminar
-      );
-      guardarEdificios(edificios);
-
-      res.json(edificioAEliminar);
+    if (existeEdificio) {
+      res.status(400).json({
+        error: 'Ya existe un edificio en esa direccion, ciudad y codigo postal',
+      });
     } else {
-      res.json({});
+      await edificio.save();
+      res.status(201).json(edificio);
     }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
 
-const modificarEdificio = (req = request, res = response) => {
+const modificarEdificio = async (req = request, res = response) => {
   try {
-    const id = parseInt(req.params.id);
-    const {
-      direccion = '',
-      ciudad = '',
-      codigo_postal = '',
-      es_particular = true,
-      contacto = '',
-    } = req.body;
+    const edificioId = req.params.id;
+    let edificio = req.body;
 
-    const edificioModificado = {
-      id,
-      direccion,
-      ciudad,
-      codigo_postal,
-      es_particular,
-      contacto,
-    }; //TODO: necesita refactorizacion, crear clase edificio
-    let edificios = listarEdificios();
-    let modificacionRealizada = false;
-    for (let i = 0; i < edificios.length; i++) {
-      if (edificioModificado.id === edificios[i].id) {
-        edificios[i] = edificioModificado;
-        modificacionRealizada = true;
-        break;
-      }
+    const existeEdificio = await Edificio.findOne({
+      direccion: req.body.direccion,
+      ciudad: req.body.ciudad,
+      codigoPostal: req.body.codigoPostal,
+      _id: { $ne: edificioId },
+    });
+    if (edificio.esParticular) {
+      edificio.constructoraId = undefined;
     }
-    if (modificacionRealizada) {
-      guardarEdificios(edificios);
-      res.json(edificioModificado);
+
+    if (existeEdificio) {
+      return res.status(400).json({
+        error: 'Ya existe un edificio en esa direccion, ciudad y codigo postal',
+      });
     } else {
-      res.json({});
+      edificio = await Edificio.findByIdAndUpdate(edificioId, edificio, {
+        new: true,
+      });
+    }
+    if (edificio) {
+      res.json(edificio);
+    } else {
+      res.status(404).json({ error: 'El recurso no existe' });
     }
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
 
-const listarEdificios = () => {
-  let datosCrudos = fs.readFileSync(
-    path.resolve(__dirname, '../datos/edificios.json')
-  );
-  let edificios = JSON.parse(datosCrudos);
+const eliminarEdificio = async (req = request, res = response) => {
+  try {
+    const edificioId = req.params.id;
 
-  return edificios;
-};
+    const poseeCaldera = await Caldera.findOne({ edificioId: edificioId });
 
-const guardarEdificios = (edificios) => {
-  fs.writeFileSync(
-    path.resolve(__dirname, '../datos/edificios.json'),
-    JSON.stringify(edificios, null, 2)
-  );
+    if (poseeCaldera) {
+      return res.status(400).json({
+        error: 'No puede eliminar el edificio porque posee una caldera',
+      });
+    }
+
+    const edificio = await Edificio.findByIdAndDelete(edificioId);
+
+    if (edificio) {
+      res.json(edificio);
+    } else {
+      res.status(404).json({ error: 'El recurso no existe' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
 };
 
 module.exports = {
