@@ -8,7 +8,7 @@ const {
   generarMantenimiento,
   modificarMantenimiento,
   eliminarMantenimiento,
-} = require('../controladoras/mantenimientos-mensuales.controladoras');
+} = require('../controladoras/mantenimientos.controladoras');
 const generarCadenaValidacionMantenimientos = require('../intermediarios/generarCadenaValidacionMantenimientos');
 const validarCampos = require('../intermediarios/validarCampos');
 const capitalizarPrimerLetra = require('../utilidades/capitalizarPrimerLetra');

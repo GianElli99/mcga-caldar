@@ -68,6 +68,7 @@ const generarMantenimiento = async (req = request, res = response) => {
         .status(400)
         .json({ error: 'La caldera seleccionada no es válida' });
     }
+
     if (mantenimiento.tecnicoId) {
       const tecnico = await Tecnico.findOne({
         _id: mantenimiento.tecnicoId,
@@ -256,7 +257,33 @@ const generarMantenimientos = async (req = request, res = response) => {
         );
       }
     }
+    const fechaParaInsertar = new Date(fecha);
 
+    const primerDiaMes = new Date(
+      fechaParaInsertar.getUTCFullYear(),
+      fechaParaInsertar.getUTCMonth(),
+      1
+    );
+    const ultimoDiaMes = new Date(
+      fechaParaInsertar.getUTCFullYear(),
+      fechaParaInsertar.getUTCMonth() + 1,
+      0
+    );
+    const cantMantenMismoMes = await Mantenimiento.countDocuments({
+      fecha: {
+        $gte: primerDiaMes,
+        $lt: ultimoDiaMes,
+      },
+      tipo: 'Mensual',
+    });
+    if (cantMantenMismoMes) {
+      return res.status(400).json({
+        error: `Ya existen ${cantMantenMismoMes} mantenimientos mensuales creados este mes, para crearlos automaticamente no debe haber ninguno.`,
+      });
+    }
+
+    await Mantenimiento.insertMany(mantenimientos);
+    await TiempoReservado.insertMany(tiemposReservados);
     return res.json({
       mantenimientos,
       reservasParaEventuales: tiemposReservados,
@@ -289,10 +316,10 @@ const modificarMantenimiento = async (req = request, res = response) => {
         .json({ error: 'La caldera seleccionada no es válida' });
     }
     if (mantenimiento.tecnicoId) {
-      const tecnico = await Tecnico.findOne({
-        _id: mantenimiento.tecnicoId,
-        especializaciones: caldera.tipo,
-      });
+      const tecnico = await esTecnicoValido(
+        mantenimientoId.tecnicoId,
+        caldera.tipo
+      );
       if (!tecnico) {
         return res
           .status(400)
@@ -357,6 +384,14 @@ const eliminarMantenimiento = async (req = request, res = response) => {
   } catch (error) {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
+};
+
+const esTecnicoValido = async (tecnicoId, tipoCaldera) => {
+  const tecnico = await Tecnico.findOne({
+    _id: tecnicoId,
+    especializaciones: tipoCaldera,
+  });
+  return tecnico;
 };
 
 module.exports = {
