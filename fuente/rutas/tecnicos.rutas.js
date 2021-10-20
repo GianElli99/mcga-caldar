@@ -2,6 +2,7 @@ const { query, param } = require('express-validator');
 const { Router } = require('express');
 const {
   obtenerTecnicos,
+  obtenerTiempoReservadoDeTecnico,
   obtenerTecnico,
   eliminarTecnico,
   agregarTecnico,
@@ -25,6 +26,12 @@ router.get(
 );
 
 router.get('/:id', [param('id').isMongoId(), validarCampos], obtenerTecnico);
+
+router.get(
+  '/:id/tiemporeservado',
+  [param('id').isMongoId(), validarCampos],
+  obtenerTiempoReservadoDeTecnico
+);
 
 router.post(
   '/',
