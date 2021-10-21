@@ -128,9 +128,48 @@ const eliminarTecnico = async (req = request, res = response) => {
     res.status(500).json({ error: 'Un error ha ocurrido' });
   }
 };
+const obtenerTiempoReservadoDeTecnico = async (
+  req = request,
+  res = response
+) => {
+  try {
+    const { id } = req.params;
+    const fecha = new Date();
+
+    const primerDiaMes = new Date(
+      fecha.getUTCFullYear(),
+      fecha.getUTCMonth() + 1,
+      1
+    );
+    const ultimoDiaMes = new Date(
+      fecha.getUTCFullYear(),
+      fecha.getUTCMonth() + 2,
+      0
+    );
+    const tecnico = await Tecnico.findById(id);
+    if (!tecnico) {
+      return res.status(400).json({
+        error: 'El técnico no existe',
+      });
+    }
+
+    const tiemposReservados = await TiempoReservado.find({
+      tecnicoId: id,
+      fecha: {
+        $gte: primerDiaMes,
+        $lt: ultimoDiaMes,
+      },
+    });
+
+    res.json(tiemposReservados);
+  } catch (error) {
+    res.status(500).json({ error: 'Un error ha ocurrido' });
+  }
+};
 
 module.exports = {
   obtenerTecnicos,
+  obtenerTiempoReservadoDeTecnico,
   obtenerTecnico,
   eliminarTecnico,
   agregarTecnico,

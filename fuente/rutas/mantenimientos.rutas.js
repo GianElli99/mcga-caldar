@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { param, query } = require('express-validator');
+const { param, query, body } = require('express-validator');
 
 const {
   obtenerMantenimientos,
@@ -8,7 +8,7 @@ const {
   generarMantenimiento,
   modificarMantenimiento,
   eliminarMantenimiento,
-} = require('../controladoras/mantenimientos-mensuales.controladoras');
+} = require('../controladoras/mantenimientos.controladoras');
 const generarCadenaValidacionMantenimientos = require('../intermediarios/generarCadenaValidacionMantenimientos');
 const validarCampos = require('../intermediarios/validarCampos');
 const capitalizarPrimerLetra = require('../utilidades/capitalizarPrimerLetra');
@@ -37,7 +37,15 @@ router.get(
   obtenerMantenimiento
 );
 
-router.post('/automatico', generarMantenimientos);
+router.post(
+  '/automatico',
+  [
+    body('fecha').isDate(),
+    body('bloqueMantenimientoEventualMinutos').isNumeric().toInt(),
+    validarCampos,
+  ],
+  generarMantenimientos
+);
 
 router.post(
   '/',
