@@ -1,5 +1,6 @@
 const express = require('express');
 const { json } = require('body-parser');
+const cors = require('cors');
 
 const routerCalderas = require('./rutas/calderas.rutas');
 const routerEdificios = require('./rutas/edificios.rutas');
@@ -14,6 +15,7 @@ const port = process.env.PORT;
 const app = express();
 
 app.use(json());
+app.use(cors());
 
 app.use('/tecnicos', routerTecnicos);
 app.use('/calderas', routerCalderas);
