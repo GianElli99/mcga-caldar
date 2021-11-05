@@ -105,8 +105,10 @@ const eliminarTecnico = async (req = request, res = response) => {
   try {
     const tecnicoId = req.params.id;
 
-    const poseeMantenimientos = Mantenimiento.findOne({ tecnicoId: tecnicoId });
-    const poseeTiempoReservado = TiempoReservado.findOne({
+    const poseeMantenimientos = await Mantenimiento.findOne({
+      tecnicoId: tecnicoId,
+    });
+    const poseeTiempoReservado = await TiempoReservado.findOne({
       tecnicoId: tecnicoId,
     });
 
