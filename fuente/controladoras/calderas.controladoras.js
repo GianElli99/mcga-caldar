@@ -86,7 +86,7 @@ const eliminarCaldera = async (req = request, res = response) => {
       }
     }
   } catch (error) {
-    res.status(500).json({ error: 'Un error ha ocurrido' });
+    res.status(400).json({ error: 'Un error ha ocurrido' });
   }
 };
 
